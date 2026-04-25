@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>🐱 Мурка | Тамагочи + планер</title>
+    <title>🐱 Мурка | Тамагочи + планер (Режим родителя)</title>
     <style>
         * {
             margin: 0;
@@ -722,6 +722,30 @@
             font-size: 18px;
             cursor: pointer;
         }
+        
+        /* Родительская панель */
+        .parent-mode-bar {
+            background: #ffd966;
+            color: #6b3e26;
+            border-radius: 32px;
+            padding: 6px 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .exit-parent-btn {
+            background: white;
+            border: none;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #d47a9e;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -737,6 +761,12 @@
         <div class="tab" data-tab="pet">🐱 МУРКА</div>
         <div class="tab" data-tab="shop">🛍️ МАГАЗИН</div>
         <div class="tab" data-tab="settings">⚙️ НАСТРОЙКИ</div>
+    </div>
+
+    <!-- Родительская панель -->
+    <div id="parentModeBar" class="parent-mode-bar" style="display: none;">
+        <span>🔐 РЕЖИМ РОДИТЕЛЯ (активен)</span>
+        <button id="exitParentModeBtn" class="exit-parent-btn">✕ Выйти</button>
     </div>
 
     <div id="tasksTab" class="tab-content active-tab">
@@ -873,6 +903,7 @@
 <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
 
 <script>
+    // ==================== ПОЛНЫЙ КОД (ВСЯ ФУНКЦИОНАЛЬНОСТЬ) ====================
     const HINTS = {
         "Заправить постель": "Расправь простыню, сложи одеяло, положи подушку",
         "Убрать одежду": "Чистую — в шкаф, грязную — в корзину для белья",
@@ -972,7 +1003,7 @@
 
     let gameData = {
         gems: 100, streak: 0, lastDate: "", lastWeek: "", lastMonth: "", taskStatuses: {}, dailyChestCollected: false,
-        parentCode: "1234", windowCount: 0, petName: "Мурка", lastNameChange: null,
+        parentCode: "1234", windowCount: 0, petName: "Мурка", lastNameChange: null, parentModeActive: false,
         purchasedAccessories: [], purchasedFurniture: [], purchasedDecor: [], purchasedSmart: [],
         activeRight: null, activeLeft: null, activeTop: null,
         pet: {
@@ -986,12 +1017,12 @@
 
     let currentFilter = "daily";
     let pendingTaskId = null, pendingTaskObj = null, pendingWindowCount = 0;
-
     let audioCtx = null, confettiActive = false;
     const canvas = document.getElementById('confettiCanvas');
     let ctx = canvas?.getContext('2d');
     let particles = [];
 
+    // ========== ЗВУКИ, АНИМАЦИИ, ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
     function initAudio() { if (audioCtx) return; try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
     function playSound(freq=880) { if(!audioCtx) return; if(audioCtx.state==='suspended') audioCtx.resume(); try { const osc=audioCtx.createOscillator(), gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value=freq; gain.gain.value=0.12; gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime+0.25); osc.start(); osc.stop(audioCtx.currentTime+0.22); } catch(e){} }
     function playMeow() { if(!audioCtx) return; if(audioCtx.state==='suspended') audioCtx.resume(); try { const now=audioCtx.currentTime, osc=audioCtx.createOscillator(), gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type='sine'; osc.frequency.setValueAtTime(600,now); osc.frequency.exponentialRampToValueAtTime(900,now+0.1); osc.frequency.exponentialRampToValueAtTime(500,now+0.25); osc.frequency.exponentialRampToValueAtTime(700,now+0.35); gain.gain.setValueAtTime(0.15,now); gain.gain.exponentialRampToValueAtTime(0.00001,now+0.45); osc.start(); osc.stop(now+0.45); } catch(e){} }
@@ -1002,13 +1033,228 @@
     function showTaskAnimation(card) { const div=document.createElement('div'); div.className='stars-animation'; div.innerHTML='✨ ⭐ ✨'; card.appendChild(div); setTimeout(()=>div.remove(),600); }
     function showHintModal(icon, taskName) { const hintText = HINTS[taskName] || "Сделай это задание!"; document.getElementById('hintIcon').innerHTML = icon; document.getElementById('hintText').innerHTML = hintText; document.getElementById('hintModal').classList.add('active'); }
     document.getElementById('closeHintBtn').onclick = () => document.getElementById('hintModal').classList.remove('active');
+    function updateDateHeader() { const now = new Date(); const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']; const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']; document.getElementById('weekdayLabel').innerHTML = weekdays[now.getDay()]; document.getElementById('dateLabel').innerHTML = `${now.getDate()} ${months[now.getMonth()]}`; }
 
-    function updateDateHeader() {
-        const now = new Date();
-        const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-        const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-        document.getElementById('weekdayLabel').innerHTML = weekdays[now.getDay()];
-        document.getElementById('dateLabel').innerHTML = `${now.getDate()} ${months[now.getMonth()]}`;
+    // ========== СТАТУСЫ ПИТОМЦА ==========
+    function isSleeping() { return gameData.pet.sleepUntil && Date.now() < gameData.pet.sleepUntil; }
+    function isSick() { return gameData.pet.sickUntil && Date.now() < gameData.pet.sickUntil; }
+    function getHappinessDecayBonus() { return Math.min(0.7, gameData.style / 100); }
+    function getHungerDecayBonus() { return Math.min(0.7, gameData.cozy / 100); }
+    function getCleanDecayBonus() { return Math.min(0.7, gameData.beauty / 100); }
+    function getRewardBonus() { return 1 + (gameData.smartStat / 200); }
+
+    function updateStatusTimers() {
+        const timerDiv = document.getElementById('statusTimer'), now = Date.now();
+        if(isSleeping()) { const remaining = Math.ceil((gameData.pet.sleepUntil - now) / 1000); const minutes = Math.floor(remaining / 60), seconds = remaining % 60; timerDiv.style.display = 'block'; timerDiv.innerHTML = `😴 Спит ${minutes}:${seconds.toString().padStart(2,'0')}`; }
+        else if(isSick()) { const remaining = Math.ceil((gameData.pet.sickUntil - now) / 1000); const minutes = Math.floor(remaining / 60), seconds = remaining % 60; timerDiv.style.display = 'block'; timerDiv.innerHTML = `🤢 Болеет ${minutes}:${seconds.toString().padStart(2,'0')}`; }
+        else timerDiv.style.display = 'none';
+    }
+
+    function wakeUpFromSleep() { if(gameData.pet.sleepUntil && Date.now() >= gameData.pet.sleepUntil) { gameData.pet.sleepUntil = null; gameData.pet.energy = Math.min(100, gameData.pet.energy + 50); saveGame(); showMessage(`😸 ${gameData.petName} проснулась! +50% энергии`); playSound(880); updatePetBars(); } }
+    function recoverFromSickness() { if(gameData.pet.sickUntil && Date.now() >= gameData.pet.sickUntil) { gameData.pet.sickUntil = null; saveGame(); showMessage(`😊 ${gameData.petName} поправилась!`); updatePetBars(); } }
+
+    function updatePetStats() {
+        const now=Date.now(), last=gameData.pet.lastUpdateTime||now, hours=(now-last)/(1000*3600);
+        wakeUpFromSleep(); recoverFromSickness();
+        if(!isSleeping() && !isSick() && hours>0.1){
+            let hungerDecay = 8*(1-getHungerDecayBonus()), happyDecay = 5*(1-getHappinessDecayBonus()), cleanDecay = 4*(1-getCleanDecayBonus());
+            let newHunger = gameData.pet.hunger - (hours * hungerDecay);
+            let newHappiness = gameData.pet.happiness - (hours * happyDecay);
+            let newEnergy = gameData.pet.energy - (hours * 6);
+            let newClean = gameData.pet.clean - (hours * cleanDecay);
+            gameData.pet.hunger = Math.max(0, Math.min(110, newHunger));
+            gameData.pet.happiness = Math.max(0, Math.min(100, newHappiness));
+            gameData.pet.energy = Math.max(0, Math.min(100, newEnergy));
+            gameData.pet.clean = Math.max(0, Math.min(100, newClean));
+            gameData.pet.lastUpdateTime = now;
+            saveGame();
+        }
+        updatePetBars();
+        updateActionLimitsDisplay();
+        updateStatusTimers();
+    }
+
+    function updatePetBars() {
+        let hungerPercent = gameData.pet.hunger;
+        document.getElementById('hungerFill').style.width = Math.min(100, hungerPercent) + '%';
+        if (hungerPercent > 100) { document.getElementById('hungerFill').style.background = '#ff6b6b'; document.getElementById('hungerValue').innerHTML = '💥 ПЕРЕЕД!'; }
+        else { document.getElementById('hungerFill').style.background = '#ffb347'; document.getElementById('hungerValue').innerHTML = Math.floor(hungerPercent) + '%'; }
+        document.getElementById('happinessFill').style.width=gameData.pet.happiness+'%'; document.getElementById('happinessValue').innerHTML=Math.floor(gameData.pet.happiness)+'%';
+        document.getElementById('energyFill').style.width=gameData.pet.energy+'%'; document.getElementById('energyValue').innerHTML=Math.floor(gameData.pet.energy)+'%';
+        document.getElementById('cleanFill').style.width=gameData.pet.clean+'%'; document.getElementById('cleanValue').innerHTML=Math.floor(gameData.pet.clean)+'%';
+        updatePetAvatarUI(); updateAroundItems();
+        const av=document.getElementById('petAvatar');
+        if(isSleeping()) av.innerHTML='💤😴💤';
+        else if(isSick()) av.innerHTML='🤢';
+        else if(gameData.pet.hunger > 100) av.innerHTML='🤢';
+        else if(gameData.pet.energy < 15) av.innerHTML='😴';
+        else if(gameData.pet.hunger<20) av.innerHTML='😿';
+        else if(gameData.pet.happiness<20) av.innerHTML='😢';
+        else av.innerHTML='🐱';
+    }
+
+    function updateAroundItems() {
+        const rightItem = SHOP_ITEMS.find(i => i.id === gameData.activeRight);
+        const leftItem = SHOP_ITEMS.find(i => i.id === gameData.activeLeft);
+        const topItem = SHOP_ITEMS.find(i => i.id === gameData.activeTop);
+        document.getElementById('rightItem').innerHTML = rightItem ? rightItem.aroundIcon || rightItem.icon : '';
+        document.getElementById('leftItem').innerHTML = leftItem ? leftItem.aroundIcon || leftItem.icon : '';
+        document.getElementById('topItem').innerHTML = topItem ? topItem.aroundIcon || topItem.icon : '';
+    }
+
+    function updatePetAvatarUI() { let vis = ""; if(gameData.pet.currentAccessory){ const acc = SHOP_ITEMS.find(i=>i.id===gameData.pet.currentAccessory); if(acc && acc.accessoryVisual) vis = acc.accessoryVisual; } document.getElementById('accessoryOnPet').innerHTML = vis; }
+
+    function updateActionLimitsDisplay() {
+        const sleeping = isSleeping(), sick = isSick(), disabled = sleeping || sick;
+        document.getElementById('petLimit').innerHTML=`${gameData.pet.petCount||0}/1`;
+        document.getElementById('playLimit').innerHTML=`${gameData.pet.playCount||0}/3`;
+        document.getElementById('playBallLimit').innerHTML=`${gameData.pet.playBallCount||0}/3`;
+        document.getElementById('playLaserLimit').innerHTML=`${gameData.pet.playLaserCount||0}/3`;
+        document.getElementById('playCandyLimit').innerHTML=`${gameData.pet.playCandyCount||0}/3`;
+        document.getElementById('batheLimit').innerHTML=`${gameData.pet.batheCount||0}/1`;
+        document.getElementById('milkLimit').innerHTML=`${gameData.pet.milkCount||0}/2`;
+        document.getElementById('brushLimit').innerHTML=`${gameData.pet.brushCount||0}/2`;
+        document.getElementById('giftLimit').innerHTML=`${gameData.pet.giftCount||0}/1`;
+        document.getElementById('sleepLimit').innerHTML=`${gameData.pet.sleepCount||0}/1`;
+        document.getElementById('actionPet').classList.toggle('disabled',(gameData.pet.petCount||0)>=1 || disabled);
+        document.getElementById('actionPlayYarn').classList.toggle('disabled',(gameData.pet.playCount||0)>=3 || disabled);
+        document.getElementById('actionPlayBall').classList.toggle('disabled',(gameData.pet.playBallCount||0)>=3 || disabled);
+        document.getElementById('actionPlayLaser').classList.toggle('disabled',(gameData.pet.playLaserCount||0)>=3 || disabled);
+        document.getElementById('actionPlayCandy').classList.toggle('disabled',(gameData.pet.playCandyCount||0)>=3 || disabled);
+        document.getElementById('actionBathe').classList.toggle('disabled',(gameData.pet.batheCount||0)>=1 || disabled);
+        document.getElementById('actionMilk').classList.toggle('disabled',(gameData.pet.milkCount||0)>=2 || disabled);
+        document.getElementById('actionBrush').classList.toggle('disabled',(gameData.pet.brushCount||0)>=2 || disabled);
+        document.getElementById('actionGift').classList.toggle('disabled',(gameData.pet.giftCount||0)>=1 || disabled);
+        document.getElementById('actionSleep').classList.toggle('disabled',(gameData.pet.sleepCount||0)>=1 || disabled);
+        document.getElementById('actionMedicine').classList.toggle('disabled',!sick);
+        if(disabled) document.getElementById('actionFeed').classList.add('disabled');
+        else document.getElementById('actionFeed').classList.remove('disabled');
+    }
+
+    function resetDailyLimits() { gameData.pet.petCount=0; gameData.pet.playCount=0; gameData.pet.playBallCount=0; gameData.pet.playLaserCount=0; gameData.pet.playCandyCount=0; gameData.pet.batheCount=0; gameData.pet.milkCount=0; gameData.pet.brushCount=0; gameData.pet.giftCount=0; gameData.pet.sleepCount=0; saveGame(); updateActionLimitsDisplay(); }
+    function checkSickness() { if(gameData.pet.hunger > 100 && !gameData.pet.sickUntil && !isSick()) { gameData.pet.sickUntil = Date.now() + (2 * 60 * 60 * 1000); gameData.pet.happiness = 0; showEmotion('🤢💔'); showMessage(`🤢 ${gameData.petName} переела! Счастье = 0. Поправится через 2 часа или лекарство 50💎`); playSound(440); saveGame(); updatePetBars(); } }
+
+    // ========== ДЕЙСТВИЯ С ПИТОМЦЕМ ==========
+    function feedPet() { if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит! Не мешай ей`); return; } if(isSick()){ showMessage(`🤢 ${gameData.petName} болеет! Дай лекарство`); return; } if(gameData.gems>=5){ gameData.gems-=5; let newHunger = gameData.pet.hunger + 35; gameData.pet.hunger = Math.min(110, newHunger); if(newHunger > 100) { showEmotion('🍗🫠'); showMessage(`🍗 ${gameData.petName} переела! Сытость ${Math.floor(newHunger)}%`); playSound(440); checkSickness(); } else { showEmotion('🍗😋'); showMessage(`🍗 ${gameData.petName} поела! +35% сытости`); playSound(880); } saveGame(); updatePetBars(); updateGemsUI(); } else showMessage(`💔 Нужно 5💎`); }
+    function giveMedicine() { if(!isSick()){ showMessage(`😊 ${gameData.petName} не болеет!`); return; } if(gameData.gems>=50){ gameData.gems-=50; const remaining = gameData.pet.sickUntil - Date.now(); gameData.pet.sickUntil = Math.min(Date.now() + 5*60*1000, gameData.pet.sickUntil - remaining*0.5); showEmotion('💊😊'); showMessage(`💊 ${gameData.petName} выпила лекарство! Выздоровеет через 5 минут`); playSound(880); startConfetti(); saveGame(); updateStatusTimers(); updateGemsUI(); } else showMessage(`💔 Нужно 50💎`); }
+    function giveMilk() { if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; } if(isSick()){ showMessage(`🤢 ${gameData.petName} болеет! Нельзя молоко`); return; } if((gameData.pet.milkCount||0)>=2){ showMessage(`😿 Уже пила молоко!`); return; } if(gameData.gems>=3){ gameData.gems-=3; gameData.pet.milkCount++; let newHunger = gameData.pet.hunger + 15; gameData.pet.hunger = Math.min(110, newHunger); if(newHunger > 100) { showEmotion('🥛🫠'); showMessage(`🥛 ${gameData.petName} переела от молока!`); playSound(440); checkSickness(); } else { showEmotion('🥛😊'); showMessage(`🥛 Молочко! +15% сыт, +10% счастья`); playSound(820); gameData.pet.happiness = Math.min(100, gameData.pet.happiness+10); } saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); } else showMessage(`💔 Нужно 3💎`); }
+    function sleepCat() { if(isSleeping()){ showMessage(`😴 ${gameData.petName} уже спит!`); return; } if((gameData.pet.sleepCount||0)>=1){ showMessage(`😴 Уже спала сегодня!`); return; } if(gameData.gems>=6){ gameData.gems-=6; gameData.pet.sleepCount=1; gameData.pet.sleepUntil = Date.now() + (15 * 60 * 1000); showEmotion('😴💤'); showMessage(`😴 ${gameData.petName} уснула на 15 минут...`); playSound(500); saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); startConfetti(); } else showMessage(`💔 Нужно 6💎`); }
+    function petCat() { if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; } if((gameData.pet.petCount||0)>=1){ showMessage(`😿 Сегодня уже гладила!`); return; } gameData.pet.petCount=1; showEmotion('✋❤️'); showMessage(`😊 ${gameData.petName} мурлычет!`); playSound(660); saveGame(); updateActionLimitsDisplay(); }
+    function playWithCat(type) { if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; } if(isSick()){ showMessage(`🤢 ${gameData.petName} болеет! Отдыхай`); return; } if(gameData.pet.energy < 15) { showEmotion('😴💤'); showMessage(`😴 ${gameData.petName} слишком устала!`); return; } let limitKey = type === 'yarn' ? 'playCount' : (type === 'ball' ? 'playBallCount' : (type === 'laser' ? 'playLaserCount' : 'playCandyCount')); if((gameData.pet[limitKey]||0)>=3){ showMessage(`😿 ${gameData.petName} устала от этой игры!`); return; } if(gameData.gems>=3){ gameData.gems-=3; gameData.pet[limitKey] = (gameData.pet[limitKey]||0) + 1; gameData.pet.happiness = Math.min(100, gameData.pet.happiness + 20); gameData.pet.energy = Math.max(0, gameData.pet.energy - 12); let toys = { yarn: '🧶', ball: '⚽', laser: '🔴', candy: '🍬' }; showEmotion(toys[type] + '🎉'); showMessage(`${toys[type]} Игра! +20% счастья`); playSound(880); startConfetti(); saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); } else showMessage(`💔 Нужно 3💎`); }
+    function brushCat() { if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; } if((gameData.pet.brushCount||0)>=2){ showMessage(`😿 Уже причёсана!`); return; } if(gameData.gems>=2){ gameData.gems-=2; gameData.pet.brushCount++; gameData.pet.happiness=Math.min(100,gameData.pet.happiness+10); gameData.pet.clean=Math.min(100,gameData.pet.clean+10); showEmotion('🪮✨'); showMessage(`🪮 Расчёска! +10% чистоты`); playSound(740); saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); } else showMessage(`💔 Нужно 2💎`); }
+    function batheCat() { if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; } if((gameData.pet.batheCount||0)>=1){ showMessage(`😿 Уже купали!`); return; } if(gameData.gems>=4){ gameData.gems-=4; gameData.pet.batheCount=1; gameData.pet.clean=Math.min(100,gameData.pet.clean+30); gameData.pet.happiness=Math.min(100,gameData.pet.happiness+5); showEmotion('🛁✨'); showMessage(`🛁 Купание! +30% чистоты`); playSound(780); startConfetti(); saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); } else showMessage(`💔 Нужно 4💎`); }
+    function giveGift() { if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; } if((gameData.pet.giftCount||0)>=1){ showMessage(`😿 Подарок уже был!`); return; } if(gameData.gems>=10){ gameData.gems-=10; gameData.pet.giftCount=1; gameData.pet.happiness=Math.min(100,gameData.pet.happiness+40); showEmotion('🎁😻'); showMessage(`🎁 Подарок! +40% счастья`); playSound(1000); startConfetti(); saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); } else showMessage(`💔 Нужно 10💎`); }
+
+    // ========== СИСТЕМА ЗАДАНИЙ ==========
+    function getWeekNumber() { const d=new Date(), date=new Date(d.getFullYear(),0,1); const days=Math.floor((d-date)/(24*3600*1000)); return Math.ceil((days+date.getDay())/7); }
+
+    function checkAndResetTasks() {
+        const today=new Date().toDateString(), thisWeek=getWeekNumber(), thisMonth=new Date().getMonth()+"-"+new Date().getFullYear();
+        let newDay=false;
+        if(gameData.lastDate!==today){
+            ALL_TASKS.daily.forEach(t=>{ const id=`daily_${t.id}`; if(gameData.taskStatuses[id]!=='rewarded' && gameData.taskStatuses[id]!=='pending_review') gameData.taskStatuses[id]='pending'; });
+            gameData.dailyChestCollected=false; gameData.lastDate=today; newDay=true;
+        }
+        if(gameData.lastWeek!==thisWeek){ ALL_TASKS.weekly.forEach(t=>{ const id=`weekly_${t.id}`; if(gameData.taskStatuses[id]!=='rewarded') gameData.taskStatuses[id]='pending'; }); gameData.lastWeek=thisWeek; }
+        if(gameData.lastMonth!==thisMonth){ ALL_TASKS.monthly.forEach(t=>{ const id=`monthly_${t.id}`; if(gameData.taskStatuses[id]!=='rewarded') gameData.taskStatuses[id]='pending'; }); gameData.lastMonth=thisMonth; }
+        if(newDay) resetDailyLimits();
+        saveGame();
+    }
+
+    function updateMonthProgress() { const monthly=ALL_TASKS.monthly; let c=0; monthly.forEach(t=>{ if(gameData.taskStatuses[`monthly_${t.id}`]==='rewarded') c++; }); document.getElementById('monthProgress').innerHTML=Math.round(c/monthly.length*100)+'%'; }
+
+    // НОВАЯ ЛОГИКА РОДИТЕЛЯ: вход через песочные часы, затем режим без пин-кода
+    function enterParentMode() {
+        const modal = document.createElement('div'); modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-content"><h3>🔐 Вход для родителя</h3><p>Введите пин-код</p><input type="password" id="parentCodeInput" class="code-input" maxlength="6" placeholder=""><div class="modal-buttons" style="display:flex; gap:8px; justify-content:center; margin-top:8px;"><button class="modal-btn confirm" id="confirmCode" style="background:#58cc71; color:white; padding:8px 20px; border:none; border-radius:40px;">Войти</button><button class="modal-btn cancel" id="cancelModal" style="background:#f0e0ea; padding:8px 20px; border:none; border-radius:40px;">Отмена</button></div></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('confirmCode').onclick = () => {
+            const code = document.getElementById('parentCodeInput').value;
+            if(code === gameData.parentCode) {
+                gameData.parentModeActive = true;
+                saveGame();
+                modal.remove();
+                showMessage("🔓 Режим родителя активирован! Теперь можно подтверждать задания.");
+                updateParentModeUI();
+                renderTasks();
+            } else { showMessage("❌ Неверный пин-код!"); modal.remove(); }
+        };
+        document.getElementById('cancelModal').onclick = () => modal.remove();
+        document.getElementById('parentCodeInput').focus();
+    }
+
+    function exitParentMode() {
+        gameData.parentModeActive = false;
+        saveGame();
+        updateParentModeUI();
+        renderTasks();
+        showMessage("👶 Вы вышли из режима родителя.");
+    }
+
+    function updateParentModeUI() {
+        const bar = document.getElementById('parentModeBar');
+        if(gameData.parentModeActive) bar.style.display = 'flex';
+        else bar.style.display = 'none';
+    }
+
+    function markTaskPendingReview(taskId, task, card, winCount = 0) {
+        if(gameData.taskStatuses[taskId] !== 'pending') { showMessage(`Уже ${gameData.taskStatuses[taskId]==='rewarded'?'выполнено':'ждёт проверки'}!`); return; }
+        showTaskAnimation(card);
+        if(task.id === "w2") gameData.taskStatuses[taskId] = { status: 'pending_review', winCount: winCount };
+        else gameData.taskStatuses[taskId] = { status: 'pending_review' };
+        showMessage(`✨ Задание отмечено! Появились песочные часы ⏳`);
+        playSound(880);
+        startConfetti();
+        saveGame();
+        renderTasks();
+    }
+
+    function parentApproveTask(taskId, task) {
+        const state = gameData.taskStatuses[taskId];
+        if(!state || state.status !== 'pending_review') { showMessage("Нет задания на проверку"); return; }
+        let reward = task.reward;
+        if(task.id === "w2") {
+            const winCount = state.winCount || 0;
+            reward = winCount * 5;
+            showMessage(`🎉 Родитель подтвердил: +${reward}💎 за ${winCount} окна!`);
+        } else {
+            if(task.type === 'daily') reward = Math.floor(task.reward * getRewardBonus());
+            showMessage(`🎉 Родитель подтвердил "${task.name}"! Награда +${reward}💎`);
+        }
+        gameData.taskStatuses[taskId] = { status: 'parent_approved', rewardReady: reward };
+        playSound(880);
+        startConfetti();
+        saveGame();
+        renderTasks();
+        updateChestUI();
+    }
+
+    function childCollectReward(taskId, task) {
+        const state = gameData.taskStatuses[taskId];
+        if(!state || state.status !== 'parent_approved') { showMessage("Нет доступных алмазов!"); return; }
+        const reward = state.rewardReady;
+        gameData.gems += reward;
+        gameData.taskStatuses[taskId] = 'rewarded';
+        showMessage(`💎 +${reward} алмазов! Задание выполнено.`);
+        playSound(1046);
+        startConfetti();
+        saveGame();
+        renderTasks();
+        updateGemsUI();
+        updateMonthProgress();
+        updatePetBars();
+        updateChestUI();
+    }
+
+    function parentUndoTask(taskId) {
+        const state = gameData.taskStatuses[taskId];
+        if(state && state.status === 'pending_review') {
+            gameData.taskStatuses[taskId] = 'pending';
+            showMessage(`❌ Родитель отменил проверку задания`);
+            playSound(660);
+            saveGame();
+            renderTasks();
+        }
     }
 
     function allRequiredCompleted() {
@@ -1050,430 +1296,10 @@
     }
     document.getElementById('closeRewardBtn').onclick = () => document.getElementById('rewardModal').classList.remove('active');
 
-    function openNameModal() { document.getElementById('newNameInput').value = gameData.petName; document.getElementById('nameModal').classList.add('active'); }
-    function closeNameModal() { document.getElementById('nameModal').classList.remove('active'); }
-    function changeNameFree() {
-        const newName = document.getElementById('newNameInput').value.trim();
-        if (!newName) { showMessage(`❌ Введите имя!`); return; }
-        const now = Date.now(), monthInMs = 30 * 24 * 60 * 60 * 1000;
-        if (gameData.lastNameChange && (now - gameData.lastNameChange) < monthInMs) {
-            const daysLeft = Math.ceil((monthInMs - (now - gameData.lastNameChange)) / (24 * 60 * 60 * 1000));
-            showMessage(`❌ Бесплатно можно сменить только через ${daysLeft} дней!`);
-            return;
-        }
-        gameData.petName = newName; gameData.lastNameChange = now;
-        document.getElementById('petName').innerText = newName;
-        saveGame(); showMessage(`✅ Теперь питомца зовут ${newName}!`); playSound(880); closeNameModal();
-    }
-    function changeNamePaid() {
-        const newName = document.getElementById('newNameInput').value.trim();
-        if (!newName) { showMessage(`❌ Введите имя!`); return; }
-        if (gameData.gems < 100) { showMessage(`💔 Нужно 100💎 для смены имени`); return; }
-        gameData.gems -= 100;
-        gameData.petName = newName;
-        document.getElementById('petName').innerText = newName;
-        saveGame(); showMessage(`✅ Теперь питомца зовут ${newName}! (-100💎)`);
-        playSound(880); startConfetti(); closeNameModal(); updateGemsUI();
-    }
-
-    function recalcStats() {
-        let style=0, smart=0, cozy=0, beauty=0;
-        gameData.purchasedAccessories.forEach(accId => { const item = SHOP_ITEMS.find(i=>i.id===accId); if(item && item.statType==='style') style += item.statValue; });
-        gameData.purchasedFurniture.forEach(furnId => { const item = SHOP_ITEMS.find(i=>i.id===furnId); if(item && item.statType==='cozy') cozy += item.statValue; });
-        gameData.purchasedDecor.forEach(decorId => { const item = SHOP_ITEMS.find(i=>i.id===decorId); if(item && item.statType==='beauty') beauty += item.statValue; });
-        gameData.purchasedSmart.forEach(smartId => { const item = SHOP_ITEMS.find(i=>i.id===smartId); if(item && item.statType==='smart') smart += item.statValue; });
-        gameData.style=style; gameData.smartStat=smart; gameData.cozy=cozy; gameData.beauty=beauty;
-        document.getElementById('styleStat').innerHTML=style; document.getElementById('smartStat').innerHTML=smart;
-        document.getElementById('cozyStat').innerHTML=cozy; document.getElementById('beautyStat').innerHTML=beauty;
-    }
-    
-    function getHappinessDecayBonus() { return Math.min(0.7, gameData.style / 100); }
-    function getHungerDecayBonus() { return Math.min(0.7, gameData.cozy / 100); }
-    function getCleanDecayBonus() { return Math.min(0.7, gameData.beauty / 100); }
-    function getRewardBonus() { return 1 + (gameData.smartStat / 200); }
-
-    function isSleeping() { return gameData.pet.sleepUntil && Date.now() < gameData.pet.sleepUntil; }
-    function isSick() { return gameData.pet.sickUntil && Date.now() < gameData.pet.sickUntil; }
-
-    function updateStatusTimers() {
-        const timerDiv = document.getElementById('statusTimer'), now = Date.now();
-        if(isSleeping()) {
-            const remaining = Math.ceil((gameData.pet.sleepUntil - now) / 1000);
-            const minutes = Math.floor(remaining / 60), seconds = remaining % 60;
-            timerDiv.style.display = 'block';
-            timerDiv.innerHTML = `😴 Спит ${minutes}:${seconds.toString().padStart(2,'0')}`;
-        } else if(isSick()) {
-            const remaining = Math.ceil((gameData.pet.sickUntil - now) / 1000);
-            const minutes = Math.floor(remaining / 60), seconds = remaining % 60;
-            timerDiv.style.display = 'block';
-            timerDiv.innerHTML = `🤢 Болеет ${minutes}:${seconds.toString().padStart(2,'0')}`;
-        } else timerDiv.style.display = 'none';
-    }
-
-    function wakeUpFromSleep() {
-        if(gameData.pet.sleepUntil && Date.now() >= gameData.pet.sleepUntil) {
-            gameData.pet.sleepUntil = null;
-            gameData.pet.energy = Math.min(100, gameData.pet.energy + 50);
-            saveGame();
-            showMessage(`😸 ${gameData.petName} проснулась! +50% энергии`);
-            playSound(880);
-            updatePetBars();
-        }
-    }
-
-    function recoverFromSickness() {
-        if(gameData.pet.sickUntil && Date.now() >= gameData.pet.sickUntil) {
-            gameData.pet.sickUntil = null;
-            saveGame();
-            showMessage(`😊 ${gameData.petName} поправилась!`);
-            updatePetBars();
-        }
-    }
-
-    function updatePetStats() {
-        const now=Date.now(), last=gameData.pet.lastUpdateTime||now, hours=(now-last)/(1000*3600);
-        wakeUpFromSleep(); recoverFromSickness();
-        if(!isSleeping() && !isSick() && hours>0.1){
-            let hungerDecay = 8*(1-getHungerDecayBonus()), happyDecay = 5*(1-getHappinessDecayBonus()), cleanDecay = 4*(1-getCleanDecayBonus());
-            let newHunger = gameData.pet.hunger - (hours * hungerDecay);
-            let newHappiness = gameData.pet.happiness - (hours * happyDecay);
-            let newEnergy = gameData.pet.energy - (hours * 6);
-            let newClean = gameData.pet.clean - (hours * cleanDecay);
-            gameData.pet.hunger = Math.max(0, Math.min(110, newHunger));
-            gameData.pet.happiness = Math.max(0, Math.min(100, newHappiness));
-            gameData.pet.energy = Math.max(0, Math.min(100, newEnergy));
-            gameData.pet.clean = Math.max(0, Math.min(100, newClean));
-            gameData.pet.lastUpdateTime = now;
-            saveGame();
-        }
-        updatePetBars();
-        updateActionLimitsDisplay();
-        updateStatusTimers();
-    }
-    
-    function updatePetBars() {
-        let hungerPercent = gameData.pet.hunger;
-        document.getElementById('hungerFill').style.width = Math.min(100, hungerPercent) + '%';
-        if (hungerPercent > 100) {
-            document.getElementById('hungerFill').style.background = '#ff6b6b';
-            document.getElementById('hungerValue').innerHTML = '💥 ПЕРЕЕД!';
-        } else {
-            document.getElementById('hungerFill').style.background = '#ffb347';
-            document.getElementById('hungerValue').innerHTML = Math.floor(hungerPercent) + '%';
-        }
-        document.getElementById('happinessFill').style.width=gameData.pet.happiness+'%';
-        document.getElementById('happinessValue').innerHTML=Math.floor(gameData.pet.happiness)+'%';
-        document.getElementById('energyFill').style.width=gameData.pet.energy+'%';
-        document.getElementById('energyValue').innerHTML=Math.floor(gameData.pet.energy)+'%';
-        document.getElementById('cleanFill').style.width=gameData.pet.clean+'%';
-        document.getElementById('cleanValue').innerHTML=Math.floor(gameData.pet.clean)+'%';
-        updatePetAvatarUI();
-        updateAroundItems();
-        const av=document.getElementById('petAvatar');
-        if(isSleeping()) av.innerHTML='💤😴💤';
-        else if(isSick()) av.innerHTML='🤢';
-        else if(gameData.pet.hunger > 100) av.innerHTML='🤢';
-        else if(gameData.pet.energy < 15) av.innerHTML='😴';
-        else if(gameData.pet.hunger<20) av.innerHTML='😿';
-        else if(gameData.pet.happiness<20) av.innerHTML='😢';
-        else av.innerHTML='🐱';
-    }
-    
-    function updateAroundItems() {
-        const rightItem = SHOP_ITEMS.find(i => i.id === gameData.activeRight);
-        const leftItem = SHOP_ITEMS.find(i => i.id === gameData.activeLeft);
-        const topItem = SHOP_ITEMS.find(i => i.id === gameData.activeTop);
-        document.getElementById('rightItem').innerHTML = rightItem ? rightItem.aroundIcon || rightItem.icon : '';
-        document.getElementById('leftItem').innerHTML = leftItem ? leftItem.aroundIcon || leftItem.icon : '';
-        document.getElementById('topItem').innerHTML = topItem ? topItem.aroundIcon || topItem.icon : '';
-    }
-    
-    function updatePetAvatarUI(){
-        let vis = "";
-        if(gameData.pet.currentAccessory){
-            const acc = SHOP_ITEMS.find(i=>i.id===gameData.pet.currentAccessory);
-            if(acc && acc.accessoryVisual) vis = acc.accessoryVisual;
-        }
-        document.getElementById('accessoryOnPet').innerHTML = vis;
-    }
-    
-    function updateActionLimitsDisplay() {
-        const sleeping = isSleeping(), sick = isSick(), disabled = sleeping || sick;
-        document.getElementById('petLimit').innerHTML=`${gameData.pet.petCount||0}/1`;
-        document.getElementById('playLimit').innerHTML=`${gameData.pet.playCount||0}/3`;
-        document.getElementById('playBallLimit').innerHTML=`${gameData.pet.playBallCount||0}/3`;
-        document.getElementById('playLaserLimit').innerHTML=`${gameData.pet.playLaserCount||0}/3`;
-        document.getElementById('playCandyLimit').innerHTML=`${gameData.pet.playCandyCount||0}/3`;
-        document.getElementById('batheLimit').innerHTML=`${gameData.pet.batheCount||0}/1`;
-        document.getElementById('milkLimit').innerHTML=`${gameData.pet.milkCount||0}/2`;
-        document.getElementById('brushLimit').innerHTML=`${gameData.pet.brushCount||0}/2`;
-        document.getElementById('giftLimit').innerHTML=`${gameData.pet.giftCount||0}/1`;
-        document.getElementById('sleepLimit').innerHTML=`${gameData.pet.sleepCount||0}/1`;
-        document.getElementById('actionPet').classList.toggle('disabled',(gameData.pet.petCount||0)>=1 || disabled);
-        document.getElementById('actionPlayYarn').classList.toggle('disabled',(gameData.pet.playCount||0)>=3 || disabled);
-        document.getElementById('actionPlayBall').classList.toggle('disabled',(gameData.pet.playBallCount||0)>=3 || disabled);
-        document.getElementById('actionPlayLaser').classList.toggle('disabled',(gameData.pet.playLaserCount||0)>=3 || disabled);
-        document.getElementById('actionPlayCandy').classList.toggle('disabled',(gameData.pet.playCandyCount||0)>=3 || disabled);
-        document.getElementById('actionBathe').classList.toggle('disabled',(gameData.pet.batheCount||0)>=1 || disabled);
-        document.getElementById('actionMilk').classList.toggle('disabled',(gameData.pet.milkCount||0)>=2 || disabled);
-        document.getElementById('actionBrush').classList.toggle('disabled',(gameData.pet.brushCount||0)>=2 || disabled);
-        document.getElementById('actionGift').classList.toggle('disabled',(gameData.pet.giftCount||0)>=1 || disabled);
-        document.getElementById('actionSleep').classList.toggle('disabled',(gameData.pet.sleepCount||0)>=1 || disabled);
-        document.getElementById('actionMedicine').classList.toggle('disabled',!sick);
-        if(disabled) document.getElementById('actionFeed').classList.add('disabled');
-        else document.getElementById('actionFeed').classList.remove('disabled');
-    }
-    
-    function resetDailyLimits() {
-        gameData.pet.petCount=0; gameData.pet.playCount=0; gameData.pet.playBallCount=0;
-        gameData.pet.playLaserCount=0; gameData.pet.playCandyCount=0; gameData.pet.batheCount=0;
-        gameData.pet.milkCount=0; gameData.pet.brushCount=0; gameData.pet.giftCount=0; gameData.pet.sleepCount=0;
-        saveGame(); updateActionLimitsDisplay();
-    }
-    
-    function checkSickness() {
-        if(gameData.pet.hunger > 100 && !gameData.pet.sickUntil && !isSick()) {
-            gameData.pet.sickUntil = Date.now() + (2 * 60 * 60 * 1000);
-            gameData.pet.happiness = 0;
-            showEmotion('🤢💔');
-            showMessage(`🤢 ${gameData.petName} переела! Счастье = 0. Поправится через 2 часа или лекарство 50💎`);
-            playSound(440);
-            saveGame();
-            updatePetBars();
-        }
-    }
-    
-    function feedPet() { 
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит! Не мешай ей`); return; }
-        if(isSick()){ showMessage(`🤢 ${gameData.petName} болеет! Дай лекарство`); return; }
-        if(gameData.gems>=5){ 
-            gameData.gems-=5; 
-            let newHunger = gameData.pet.hunger + 35;
-            gameData.pet.hunger = Math.min(110, newHunger);
-            if(newHunger > 100) {
-                showEmotion('🍗🫠');
-                showMessage(`🍗 ${gameData.petName} переела! Сытость ${Math.floor(newHunger)}%`);
-                playSound(440);
-                checkSickness();
-            } else {
-                showEmotion('🍗😋');
-                showMessage(`🍗 ${gameData.petName} поела! +35% сытости`);
-                playSound(880);
-            }
-            saveGame(); updatePetBars(); updateGemsUI(); 
-        } else showMessage(`💔 Нужно 5💎`); 
-    }
-    
-    function giveMedicine() {
-        if(!isSick()){ showMessage(`😊 ${gameData.petName} не болеет!`); return; }
-        if(gameData.gems>=50){
-            gameData.gems-=50;
-            const remaining = gameData.pet.sickUntil - Date.now();
-            gameData.pet.sickUntil = Math.min(Date.now() + 5*60*1000, gameData.pet.sickUntil - remaining*0.5);
-            showEmotion('💊😊');
-            showMessage(`💊 ${gameData.petName} выпила лекарство! Выздоровеет через 5 минут`);
-            playSound(880);
-            startConfetti();
-            saveGame();
-            updateStatusTimers();
-            updateGemsUI();
-        } else showMessage(`💔 Нужно 50💎`);
-    }
-    
-    function giveMilk() { 
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; }
-        if(isSick()){ showMessage(`🤢 ${gameData.petName} болеет! Нельзя молоко`); return; }
-        if((gameData.pet.milkCount||0)>=2){ showMessage(`😿 Уже пила молоко!`); return; } 
-        if(gameData.gems>=3){ 
-            gameData.gems-=3; gameData.pet.milkCount++; 
-            let newHunger = gameData.pet.hunger + 15;
-            gameData.pet.hunger = Math.min(110, newHunger);
-            if(newHunger > 100) {
-                showEmotion('🥛🫠');
-                showMessage(`🥛 ${gameData.petName} переела от молока!`);
-                playSound(440);
-                checkSickness();
-            } else {
-                showEmotion('🥛😊');
-                showMessage(`🥛 Молочко! +15% сыт, +10% счастья`);
-                playSound(820);
-                gameData.pet.happiness = Math.min(100, gameData.pet.happiness+10);
-            }
-            saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); 
-        } else showMessage(`💔 Нужно 3💎`); 
-    }
-    
-    function sleepCat() { 
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} уже спит!`); return; }
-        if((gameData.pet.sleepCount||0)>=1){ showMessage(`😴 Уже спала сегодня!`); return; } 
-        if(gameData.gems>=6){ 
-            gameData.gems-=6; 
-            gameData.pet.sleepCount=1;
-            gameData.pet.sleepUntil = Date.now() + (15 * 60 * 1000);
-            showEmotion('😴💤');
-            showMessage(`😴 ${gameData.petName} уснула на 15 минут...`);
-            playSound(500);
-            saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); startConfetti();
-        } else showMessage(`💔 Нужно 6💎`); 
-    }
-    
-    function petCat() { 
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; }
-        if((gameData.pet.petCount||0)>=1){ showMessage(`😿 Сегодня уже гладила!`); return; } 
-        gameData.pet.petCount=1; showEmotion('✋❤️'); showMessage(`😊 ${gameData.petName} мурлычет!`); playSound(660); saveGame(); updateActionLimitsDisplay(); 
-    }
-    
-    function playWithCat(type) {
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; }
-        if(isSick()){ showMessage(`🤢 ${gameData.petName} болеет! Отдыхай`); return; }
-        if(gameData.pet.energy < 15) { showEmotion('😴💤'); showMessage(`😴 ${gameData.petName} слишком устала!`); return; }
-        let limitKey = type === 'yarn' ? 'playCount' : (type === 'ball' ? 'playBallCount' : (type === 'laser' ? 'playLaserCount' : 'playCandyCount'));
-        if((gameData.pet[limitKey]||0)>=3){ showMessage(`😿 ${gameData.petName} устала от этой игры!`); return; }
-        if(gameData.gems>=3){
-            gameData.gems-=3;
-            gameData.pet[limitKey] = (gameData.pet[limitKey]||0) + 1;
-            gameData.pet.happiness = Math.min(100, gameData.pet.happiness + 20);
-            gameData.pet.energy = Math.max(0, gameData.pet.energy - 12);
-            let toys = { yarn: '🧶', ball: '⚽', laser: '🔴', candy: '🍬' };
-            showEmotion(toys[type] + '🎉');
-            showMessage(`${toys[type]} Игра! +20% счастья`);
-            playSound(880);
-            startConfetti();
-            saveGame();
-            updatePetBars();
-            updateGemsUI();
-            updateActionLimitsDisplay();
-        } else showMessage(`💔 Нужно 3💎`);
-    }
-    
-    function brushCat() { 
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; }
-        if((gameData.pet.brushCount||0)>=2){ showMessage(`😿 Уже причёсана!`); return; } 
-        if(gameData.gems>=2){ 
-            gameData.gems-=2; gameData.pet.brushCount++; 
-            gameData.pet.happiness=Math.min(100,gameData.pet.happiness+10); 
-            gameData.pet.clean=Math.min(100,gameData.pet.clean+10); 
-            showEmotion('🪮✨'); 
-            showMessage(`🪮 Расчёска! +10% чистоты`); 
-            playSound(740); 
-            saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); 
-        } else showMessage(`💔 Нужно 2💎`); 
-    }
-    
-    function batheCat() { 
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; }
-        if((gameData.pet.batheCount||0)>=1){ showMessage(`😿 Уже купали!`); return; } 
-        if(gameData.gems>=4){ 
-            gameData.gems-=4; gameData.pet.batheCount=1; 
-            gameData.pet.clean=Math.min(100,gameData.pet.clean+30); 
-            gameData.pet.happiness=Math.min(100,gameData.pet.happiness+5); 
-            showEmotion('🛁✨'); 
-            showMessage(`🛁 Купание! +30% чистоты`); 
-            playSound(780); 
-            startConfetti(); 
-            saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); 
-        } else showMessage(`💔 Нужно 4💎`); 
-    }
-    
-    function giveGift() { 
-        if(isSleeping()){ showMessage(`😴 ${gameData.petName} спит!`); return; }
-        if((gameData.pet.giftCount||0)>=1){ showMessage(`😿 Подарок уже был!`); return; } 
-        if(gameData.gems>=10){ 
-            gameData.gems-=10; gameData.pet.giftCount=1; 
-            gameData.pet.happiness=Math.min(100,gameData.pet.happiness+40); 
-            showEmotion('🎁😻'); 
-            showMessage(`🎁 Подарок! +40% счастья`); 
-            playSound(1000); 
-            startConfetti(); 
-            saveGame(); updatePetBars(); updateGemsUI(); updateActionLimitsDisplay(); 
-        } else showMessage(`💔 Нужно 10💎`); 
-    }
-
-    function getWeekNumber() { const d=new Date(), date=new Date(d.getFullYear(),0,1); const days=Math.floor((d-date)/(24*3600*1000)); return Math.ceil((days+date.getDay())/7); }
-    
-    function checkAndResetTasks() {
-        const today=new Date().toDateString(), thisWeek=getWeekNumber(), thisMonth=new Date().getMonth()+"-"+new Date().getFullYear();
-        let newDay=false;
-        if(gameData.lastDate!==today){
-            ALL_TASKS.daily.forEach(t=>{ const id=`daily_${t.id}`; if(gameData.taskStatuses[id]!=='rewarded' && gameData.taskStatuses[id]!=='pending_review') gameData.taskStatuses[id]='pending'; });
-            gameData.dailyChestCollected=false; gameData.lastDate=today; newDay=true;
-        }
-        if(gameData.lastWeek!==thisWeek){ ALL_TASKS.weekly.forEach(t=>{ const id=`weekly_${t.id}`; if(gameData.taskStatuses[id]!=='rewarded') gameData.taskStatuses[id]='pending'; }); gameData.lastWeek=thisWeek; }
-        if(gameData.lastMonth!==thisMonth){ ALL_TASKS.monthly.forEach(t=>{ const id=`monthly_${t.id}`; if(gameData.taskStatuses[id]!=='rewarded') gameData.taskStatuses[id]='pending'; }); gameData.lastMonth=thisMonth; }
-        if(newDay) resetDailyLimits();
-        saveGame();
-    }
-    
-    function updateMonthProgress() { const monthly=ALL_TASKS.monthly; let c=0; monthly.forEach(t=>{ if(gameData.taskStatuses[`monthly_${t.id}`]==='rewarded') c++; }); document.getElementById('monthProgress').innerHTML=Math.round(c/monthly.length*100)+'%'; }
-
-    function markTaskPendingReview(taskId, task, card) {
-        if(gameData.taskStatuses[taskId]!=='pending'){ showMessage(`Уже ${gameData.taskStatuses[taskId]==='rewarded'?'выполнено':'ждёт проверки'}!`); return; }
-        showTaskAnimation(card);
-        gameData.taskStatuses[taskId]='pending_review';
-        showMessage(`✨ Задание отмечено! Ждёт проверки ✨`);
-        playSound(880);
-        startConfetti();
-        saveGame();
-        renderTasks();
-    }
-    
-    function submitWindows(taskId, task, card, winCount) {
-        if(winCount === 0) { showMessage(`Сначала добавь окна (+)`); return; }
-        if(gameData.taskStatuses[taskId]!=='pending') return;
-        pendingWindowCount = winCount;
-        showTaskAnimation(card);
-        gameData.taskStatuses[taskId]='pending_review';
-        showMessage(`✨ Отмечено ${winCount} окна! Ждёт проверки ✨`);
-        playSound(880);
-        startConfetti();
-        saveGame();
-        renderTasks();
-    }
-    
-    function undoTask(taskId) {
-        if(gameData.taskStatuses[taskId]!=='pending_review'){ showMessage(`Отменить можно только задание с ⏳`); return; }
-        gameData.taskStatuses[taskId]='pending';
-        showMessage(`✅ Задание отменено! Можно отметить заново`);
-        playSound(660);
-        saveGame();
-        renderTasks();
-        updateChestUI();
-    }
-
-    function showParentModal() {
-        const modal=document.createElement('div'); modal.className='modal';
-        modal.innerHTML=`<div class="modal-content"><h3>🔐 Проверка родителя</h3><p>Введите код</p><input type="password" id="parentCodeInput" class="code-input" maxlength="6"><div class="modal-buttons"><button class="modal-btn confirm" id="confirmCode">✅</button><button class="modal-btn cancel" id="cancelModal">❌</button></div></div>`;
-        document.body.appendChild(modal);
-        document.getElementById('confirmCode').onclick=()=>{ if(document.getElementById('parentCodeInput').value===gameData.parentCode){ approveTaskReward(); modal.remove(); } else showMessage(`❌ Неверный код!`); };
-        document.getElementById('cancelModal').onclick=()=>modal.remove();
-        document.getElementById('parentCodeInput').focus();
-    }
-
-    function approveTaskReward() {
-        if(!pendingTaskId||!pendingTaskObj) return;
-        let reward=pendingTaskObj.reward;
-        if(pendingTaskObj.id === "w2" && pendingWindowCount > 0) {
-            reward = pendingWindowCount * 5;
-            showMessage(`🎉 +${reward}💎 за ${pendingWindowCount} окна!`);
-            gameData.windowCount = 0;
-        } else {
-            if(pendingTaskObj.type==='daily') reward=Math.floor(pendingTaskObj.reward*getRewardBonus());
-            showMessage(`🎉 +${reward}💎 за "${pendingTaskObj.name}"!`);
-        }
-        gameData.taskStatuses[pendingTaskId]='rewarded';
-        gameData.gems+=reward;
-        playSound(880); startConfetti();
-        updateChestUI();
-        pendingTaskId=null; pendingTaskObj=null; pendingWindowCount=0;
-        saveGame(); renderTasks(); updateGemsUI(); updateMonthProgress(); updatePetBars();
-    }
-
-    function openParentCheck(taskId,task){ if(gameData.taskStatuses[taskId]!=='pending_review'){ showMessage(`Сначала отметь задание!`); return; } pendingTaskId=taskId; pendingTaskObj=task; showParentModal(); }
-
-    function renderTasks(){
-        const cont=document.getElementById('tasksContainer'); if(!cont) return;
-        cont.innerHTML='';
-        const all=getAllTasksArray();
+    function renderTasks() {
+        const cont = document.getElementById('tasksContainer'); if(!cont) return;
+        cont.innerHTML = '';
+        const all = getAllTasksArray();
         let activeTasks = all.filter(task => {
             const tid = `${task.type}_${task.id}`;
             const status = gameData.taskStatuses[tid];
@@ -1493,13 +1319,25 @@
             sec.innerHTML = `<div class="section-header"><span class="section-icon">${icon}</span><span class="section-title">${title}</span><span class="section-badge">${badge}</span></div>`;
             tasks.forEach(task => {
                 const tid = `${task.type}_${task.id}`;
-                const status = gameData.taskStatuses[tid] || 'pending';
+                const state = gameData.taskStatuses[tid];
+                let status = 'pending';
+                let isPendingReview = false, isParentApproved = false;
+                if(state) {
+                    if(state.status === 'pending_review') { status = 'pending_review'; isPendingReview = true; }
+                    else if(state.status === 'parent_approved') { status = 'parent_approved'; isParentApproved = true; }
+                    else if(state === 'rewarded') status = 'rewarded';
+                    else if(state === 'skipped') status = 'skipped';
+                }
                 const card = document.createElement('div');
                 let statusHtml = '', cardClass = '';
                 if(status === 'rewarded'){ statusHtml='<div class="task-status circle-done"></div>'; cardClass='completed'; }
-                else if(status === 'pending_review'){ statusHtml='<div class="task-status hourglass"></div>'; cardClass='pending-review'; }
                 else if(status === 'skipped'){ statusHtml='<div class="task-status skipped-icon"></div>'; cardClass='skipped'; }
-                else{ statusHtml='<div class="task-status circle-pending"></div>'; }
+                else if(isPendingReview && !gameData.parentModeActive){ statusHtml='<div class="task-status hourglass" data-action="callParent"></div>'; cardClass='pending-review'; }
+                else if(isPendingReview && gameData.parentModeActive){ statusHtml='<div class="task-actions" style="display:flex; gap:8px;"><div class="undo-btn" data-action="undo">✗</div><div class="task-status" style="background:#58cc71; color:white; font-size:24px; cursor:pointer;" data-action="approve">✔️</div></div>'; cardClass='pending-review'; }
+                else if(isParentApproved && !gameData.parentModeActive){ statusHtml='<div class="task-status diamond-ready" data-action="collect" style="background:#c0e0ff; color:#2c7da0; font-size:28px; cursor:pointer;">💎</div>'; }
+                else if(isParentApproved && gameData.parentModeActive){ statusHtml='<div class="task-status" style="background:#c0e0ff;">💎 (ждёт сборки)</div>'; }
+                else{ statusHtml='<div class="task-status circle-pending" data-action="mark"></div>'; }
+                
                 let bonus = 0;
                 if(task.type === 'daily' && gameData.smartStat > 0) bonus = Math.floor(task.reward * (getRewardBonus() - 1));
                 let rewardText = task.reward;
@@ -1508,25 +1346,35 @@
                 if(task.required) card.classList.add('required');
                 
                 if(task.id === "w2" && status === 'pending') {
-                    let winCount = 0;
+                    let winCountLocal = 0;
                     card.innerHTML = `<div class="task-left"><span class="task-icon" data-task-name="${task.name}">${task.icon}</span><span class="task-name">${task.name}${task.required ? '<span class="required-badge">🔒 обязательно</span>' : ''}</span><span class="task-reward">${rewardText}</span></div>
-                        <div class="task-actions"><div class="window-counter"><button class="window-btn" id="windowMinus">-</button><span id="windowCountDisplay" style="min-width:30px; text-align:center;">0</span><button class="window-btn" id="windowPlus">+</button></div><div class="task-status circle-pending" style="cursor:pointer" id="submitWindows"></div></div>`;
-                    const plusBtn = card.querySelector('#windowPlus'), minusBtn = card.querySelector('#windowMinus'), countSpan = card.querySelector('#windowCountDisplay'), submitBtn = card.querySelector('#submitWindows');
-                    plusBtn.onclick = (e) => { e.stopPropagation(); winCount++; countSpan.innerHTML = winCount; };
-                    minusBtn.onclick = (e) => { e.stopPropagation(); if(winCount>0) winCount--; countSpan.innerHTML = winCount; };
-                    submitBtn.onclick = (e) => { e.stopPropagation(); submitWindows(tid, task, card, winCount); };
+                        <div class="task-actions"><div class="window-counter"><button class="window-btn windowMinus">-</button><span class="windowCountDisplay" style="min-width:30px; text-align:center;">0</span><button class="window-btn windowPlus">+</button></div>${statusHtml}</div>`;
+                    const plusBtn = card.querySelector('.windowPlus'), minusBtn = card.querySelector('.windowMinus'), countSpan = card.querySelector('.windowCountDisplay'), submitArea = card.querySelector('[data-action="mark"]');
+                    if(plusBtn) plusBtn.onclick = (e) => { e.stopPropagation(); winCountLocal++; countSpan.innerHTML = winCountLocal; };
+                    if(minusBtn) minusBtn.onclick = (e) => { e.stopPropagation(); if(winCountLocal>0) winCountLocal--; countSpan.innerHTML = winCountLocal; };
+                    if(submitArea) submitArea.onclick = (e) => { e.stopPropagation(); markTaskPendingReview(tid, task, card, winCountLocal); };
                 } else {
-                    card.innerHTML = `<div class="task-left"><span class="task-icon" data-task-name="${task.name}">${task.icon}</span><span class="task-name">${task.name}${task.required ? '<span class="required-badge">🔒 обязательно</span>' : ''}</span><span class="task-reward">+${rewardText}${bonus?` +${bonus}📚`:''}</span></div><div class="task-actions">${status === 'pending_review' ? '<div class="undo-btn" data-id="'+tid+'">✗</div>' : ''}${statusHtml}</div>`;
+                    card.innerHTML = `<div class="task-left"><span class="task-icon" data-task-name="${task.name}">${task.icon}</span><span class="task-name">${task.name}${task.required ? '<span class="required-badge">🔒 обязательно</span>' : ''}</span><span class="task-reward">+${rewardText}${bonus?` +${bonus}📚`:''}</span></div><div class="task-actions">${statusHtml}</div>`;
                 }
+                
                 const iconSpan = card.querySelector('.task-icon');
                 if(iconSpan) iconSpan.onclick = (e) => { e.stopPropagation(); showHintModal(task.icon, task.name); };
-                if(status === 'pending' && task.id !== "w2"){
-                    card.addEventListener('click', (e) => { if(!e.target.classList.contains('undo-btn') && !e.target.classList.contains('task-icon')) markTaskPendingReview(tid, task, card); });
-                } else if(status === 'pending_review'){
-                    card.addEventListener('click', () => openParentCheck(tid, task));
-                    const undo = card.querySelector('.undo-btn');
-                    if(undo) undo.addEventListener('click', (e) => { e.stopPropagation(); undoTask(tid); });
-                }
+                
+                const markBtn = card.querySelector('[data-action="mark"]');
+                if(markBtn && status === 'pending' && task.id !== "w2") markBtn.onclick = (e) => { e.stopPropagation(); markTaskPendingReview(tid, task, card, 0); };
+                
+                const callParentBtn = card.querySelector('[data-action="callParent"]');
+                if(callParentBtn) callParentBtn.onclick = (e) => { e.stopPropagation(); enterParentMode(); };
+                
+                const approveBtn = card.querySelector('[data-action="approve"]');
+                if(approveBtn) approveBtn.onclick = (e) => { e.stopPropagation(); parentApproveTask(tid, task); };
+                
+                const undoBtn = card.querySelector('[data-action="undo"]');
+                if(undoBtn) undoBtn.onclick = (e) => { e.stopPropagation(); parentUndoTask(tid); };
+                
+                const collectBtn = card.querySelector('[data-action="collect"]');
+                if(collectBtn) collectBtn.onclick = (e) => { e.stopPropagation(); childCollectReward(tid, task); };
+                
                 sec.appendChild(card);
             });
             cont.appendChild(sec);
@@ -1538,6 +1386,18 @@
         const dailyRewarded = Object.keys(gameData.taskStatuses).filter(k => k.startsWith('daily_') && gameData.taskStatuses[k] === 'rewarded').length;
         document.getElementById('dayProgress').innerHTML = `${dailyRewarded}/${ALL_TASKS.daily.length}`;
         updateChestUI();
+    }
+
+    // ========== МАГАЗИН, КОМНАТА, ИМЯ ==========
+    function recalcStats() {
+        let style=0, smart=0, cozy=0, beauty=0;
+        gameData.purchasedAccessories.forEach(accId => { const item = SHOP_ITEMS.find(i=>i.id===accId); if(item && item.statType==='style') style += item.statValue; });
+        gameData.purchasedFurniture.forEach(furnId => { const item = SHOP_ITEMS.find(i=>i.id===furnId); if(item && item.statType==='cozy') cozy += item.statValue; });
+        gameData.purchasedDecor.forEach(decorId => { const item = SHOP_ITEMS.find(i=>i.id===decorId); if(item && item.statType==='beauty') beauty += item.statValue; });
+        gameData.purchasedSmart.forEach(smartId => { const item = SHOP_ITEMS.find(i=>i.id===smartId); if(item && item.statType==='smart') smart += item.statValue; });
+        gameData.style=style; gameData.smartStat=smart; gameData.cozy=cozy; gameData.beauty=beauty;
+        document.getElementById('styleStat').innerHTML=style; document.getElementById('smartStat').innerHTML=smart;
+        document.getElementById('cozyStat').innerHTML=cozy; document.getElementById('beautyStat').innerHTML=beauty;
     }
 
     function buyItem(item) {
@@ -1575,7 +1435,7 @@
             updateGemsUI();
         } else showMessage(`💔 Нужно ${item.price}💎`);
     }
-    
+
     function toggleAroundItem(itemId, slot) {
         if(slot === 'right') { gameData.activeRight = (gameData.activeRight === itemId ? null : itemId); }
         else if(slot === 'left') { gameData.activeLeft = (gameData.activeLeft === itemId ? null : itemId); }
@@ -1585,7 +1445,7 @@
         if(item) showMessage(`${gameData.activeRight===itemId || gameData.activeLeft===itemId || gameData.activeTop===itemId ? '✨ Активировано' : '❌ Деактивировано'}: ${item.name}`);
         playSound(660);
     }
-    
+
     function toggleAccessory(accId) {
         if(gameData.pet.currentAccessory === accId) gameData.pet.currentAccessory = null;
         else gameData.pet.currentAccessory = accId;
@@ -1596,7 +1456,7 @@
         updatePetAvatarUI();
         renderRoomModal();
     }
-    
+
     function getStatName(statType){ const n={style:'стилю',smart:'уму',cozy:'уюту',beauty:'красоте'}; return n[statType]||'характеристике'; }
     function onCatClick(){ playMeow(); }
 
@@ -1614,7 +1474,6 @@
             });
             if(accessories.length === 0) accContainer.innerHTML = '<div style="grid-column:span3; text-align:center; padding:20px;">✨ Купи аксессуары ✨</div>';
         }
-        
         const furnContainer = document.getElementById('furnitureRoom');
         if(furnContainer) {
             furnContainer.innerHTML = '';
@@ -1628,7 +1487,6 @@
             });
             if(furniture.length === 0) furnContainer.innerHTML = '<div style="grid-column:span3; text-align:center; padding:20px;">🛋️ Купи мебель 🛋️</div>';
         }
-        
         const decorContainer = document.getElementById('decorRoom');
         if(decorContainer) {
             decorContainer.innerHTML = '';
@@ -1642,7 +1500,6 @@
             });
             if(decor.length === 0) decorContainer.innerHTML = '<div style="grid-column:span3; text-align:center; padding:20px;">🌸 Купи декор 🌸</div>';
         }
-        
         const smartContainer = document.getElementById('smartRoom');
         if(smartContainer) {
             smartContainer.innerHTML = '';
@@ -1675,11 +1532,38 @@
         });
         if(cont.children.length === 0) cont.innerHTML = '<div style="text-align:center; padding:40px;">🎉 Всё куплено! 🎉</div>';
     }
-    
-    function updateGemsUI(){ document.getElementById('gemCount').innerText=gameData.gems; document.getElementById('streakCount').innerText=gameData.streak; updateMonthProgress(); }
+
+    function openNameModal() { document.getElementById('newNameInput').value = gameData.petName; document.getElementById('nameModal').classList.add('active'); }
+    function closeNameModal() { document.getElementById('nameModal').classList.remove('active'); }
+    function changeNameFree() {
+        const newName = document.getElementById('newNameInput').value.trim();
+        if (!newName) { showMessage(`❌ Введите имя!`); return; }
+        const now = Date.now(), monthInMs = 30 * 24 * 60 * 60 * 1000;
+        if (gameData.lastNameChange && (now - gameData.lastNameChange) < monthInMs) {
+            const daysLeft = Math.ceil((monthInMs - (now - gameData.lastNameChange)) / (24 * 60 * 60 * 1000));
+            showMessage(`❌ Бесплатно можно сменить только через ${daysLeft} дней!`);
+            return;
+        }
+        gameData.petName = newName; gameData.lastNameChange = now;
+        document.getElementById('petName').innerText = newName;
+        saveGame(); showMessage(`✅ Теперь питомца зовут ${newName}!`); playSound(880); closeNameModal();
+    }
+    function changeNamePaid() {
+        const newName = document.getElementById('newNameInput').value.trim();
+        if (!newName) { showMessage(`❌ Введите имя!`); return; }
+        if (gameData.gems < 100) { showMessage(`💔 Нужно 100💎 для смены имени`); return; }
+        gameData.gems -= 100;
+        gameData.petName = newName;
+        document.getElementById('petName').innerText = newName;
+        saveGame(); showMessage(`✅ Теперь питомца зовут ${newName}! (-100💎)`);
+        playSound(880); startConfetti(); closeNameModal(); updateGemsUI();
+    }
+
+    function updateGemsUI(){ document.getElementById('gemCount').innerText = gameData.gems; document.getElementById('streakCount').innerText = gameData.streak; updateMonthProgress(); }
     function updateAllUI(){ renderTasks(); updatePetBars(); renderShop(); updateGemsUI(); }
 
     function saveGame(){ localStorage.setItem("tamagochiPlannerFinal",JSON.stringify(gameData)); }
+    
     function loadGame(){
         const saved=localStorage.getItem("tamagochiPlannerFinal");
         if(saved){
@@ -1704,6 +1588,7 @@
                 if(gameData.pet.giftCount===undefined) gameData.pet.giftCount=0;
                 if(gameData.pet.sleepCount===undefined) gameData.pet.sleepCount=0;
                 if(!gameData.parentCode) gameData.parentCode="1234";
+                if(gameData.parentModeActive === undefined) gameData.parentModeActive = false;
             }catch(e){ resetGame(); }
         } else resetGame();
         document.getElementById('petName').innerText = gameData.petName;
@@ -1715,10 +1600,11 @@
         updateAllUI();
         renderRoomModal();
         updateChestUI();
+        updateParentModeUI();
     }
     
     function resetGame(){
-        gameData={gems:100,streak:0,lastDate:"",lastWeek:"",lastMonth:"",taskStatuses:{},dailyChestCollected:false,parentCode:"1234",windowCount:0,petName:"Мурка",lastNameChange:null,purchasedAccessories:[],purchasedFurniture:[],purchasedDecor:[],purchasedSmart:[],activeRight:null,activeLeft:null,activeTop:null,pet:{hunger:20,happiness:50,energy:70,clean:80,lastUpdateTime:Date.now(),petCount:0,playCount:0,playBallCount:0,playLaserCount:0,playCandyCount:0,batheCount:0,milkCount:0,brushCount:0,giftCount:0,sleepCount:0,currentAccessory:null,sickUntil:null,sleepUntil:null},style:0,smartStat:0,cozy:0,beauty:0};
+        gameData={gems:100,streak:0,lastDate:"",lastWeek:"",lastMonth:"",taskStatuses:{},dailyChestCollected:false,parentCode:"1234",windowCount:0,petName:"Мурка",lastNameChange:null,parentModeActive:false,purchasedAccessories:[],purchasedFurniture:[],purchasedDecor:[],purchasedSmart:[],activeRight:null,activeLeft:null,activeTop:null,pet:{hunger:20,happiness:50,energy:70,clean:80,lastUpdateTime:Date.now(),petCount:0,playCount:0,playBallCount:0,playLaserCount:0,playCandyCount:0,batheCount:0,milkCount:0,brushCount:0,giftCount:0,sleepCount:0,currentAccessory:null,sickUntil:null,sleepUntil:null},style:0,smartStat:0,cozy:0,beauty:0};
         document.getElementById('petName').innerText = "Мурка";
         updateDateHeader();
         checkAndResetTasks();
@@ -1727,6 +1613,7 @@
         updateAllUI();
         renderRoomModal();
         updateChestUI();
+        updateParentModeUI();
         showMessage("🌸 Новая игра! Мурка голодна — покорми её! 🌸");
     }
 
@@ -1774,6 +1661,7 @@
         document.getElementById('closeRoomX').addEventListener('click',closeRoom);
         document.getElementById('resetBtn').addEventListener('click',()=>{ resetGame(); updatePetStats(); });
         document.getElementById('dailyChest').addEventListener('click',openRewardModal);
+        document.getElementById('exitParentModeBtn').addEventListener('click',exitParentMode);
         document.getElementById('changeCodeBtn').addEventListener('click',()=>{
             const cur=document.getElementById('currentCodeInput').value;
             const nw=document.getElementById('newCodeInput').value;
