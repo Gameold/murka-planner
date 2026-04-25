@@ -1177,7 +1177,7 @@ footer { font-size: 9px; text-align: center; color: #cba4bb; margin-top: 16px; }
 }
 
 /* Адаптация для маленьких экранов */
-@media (max-width: 550px) {
+@media (max-width: 350px) {
     .header-stats {
         flex-direction: column;
         gap: 8px;
