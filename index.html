@@ -1347,14 +1347,14 @@
                 
                 if(task.id === "w2" && status === 'pending') {
                     let winCountLocal = 0;
-                    card.innerHTML = `<div class="task-left"><span class="task-icon" data-task-name="${task.name}">${task.icon}</span><span class="task-name">${task.name}${task.required ? '<span class="required-badge">🔒 обязательно</span>' : ''}</span><span class="task-reward">${rewardText}</span></div>
+                    card.innerHTML = `<div class="task-left"><span class="task-icon" data-task-name="${task.name}">${task.icon}</span><span class="task-name">${task.name}${task.required ? '<span class="required-badge">🔒 </span>' : ''}</span><span class="task-reward">${rewardText}</span></div>
                         <div class="task-actions"><div class="window-counter"><button class="window-btn windowMinus">-</button><span class="windowCountDisplay" style="min-width:30px; text-align:center;">0</span><button class="window-btn windowPlus">+</button></div>${statusHtml}</div>`;
                     const plusBtn = card.querySelector('.windowPlus'), minusBtn = card.querySelector('.windowMinus'), countSpan = card.querySelector('.windowCountDisplay'), submitArea = card.querySelector('[data-action="mark"]');
                     if(plusBtn) plusBtn.onclick = (e) => { e.stopPropagation(); winCountLocal++; countSpan.innerHTML = winCountLocal; };
                     if(minusBtn) minusBtn.onclick = (e) => { e.stopPropagation(); if(winCountLocal>0) winCountLocal--; countSpan.innerHTML = winCountLocal; };
                     if(submitArea) submitArea.onclick = (e) => { e.stopPropagation(); markTaskPendingReview(tid, task, card, winCountLocal); };
                 } else {
-                    card.innerHTML = `<div class="task-left"><span class="task-icon" data-task-name="${task.name}">${task.icon}</span><span class="task-name">${task.name}${task.required ? '<span class="required-badge">🔒 обязательно</span>' : ''}</span><span class="task-reward">+${rewardText}${bonus?` +${bonus}📚`:''}</span></div><div class="task-actions">${statusHtml}</div>`;
+                    card.innerHTML = `<div class="task-left"><span class="task-icon" data-task-name="${task.name}">${task.icon}</span><span class="task-name">${task.name}${task.required ? '<span class="required-badge">🔒 </span>' : ''}</span><span class="task-reward">+${rewardText}${bonus?` +${bonus}📚`:''}</span></div><div class="task-actions">${statusHtml}</div>`;
                 }
                 
                 const iconSpan = card.querySelector('.task-icon');
