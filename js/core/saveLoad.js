@@ -1,5 +1,12 @@
 function saveGame() {
     localStorage.setItem("tamagochiPlannerFinal", JSON.stringify(gameData));
+    
+    // Сохраняем в облако если пользователь авторизован
+    if (typeof auth !== 'undefined' && auth.currentUser) {
+        const userId = auth.currentUser.uid;
+        database.ref(`users/${userId}/gameData`).set(gameData).catch(e => console.log('Ошибка сохранения в облако:', e));
+        console.log('☁️ Данные сохранены в облако');
+    }
 }
 
 function loadGame() {
@@ -51,6 +58,23 @@ function loadGame() {
     }
 }
 
+async function loadGameFromCloud(userId) {
+    if (!userId) return;
+    try {
+        const snapshot = await database.ref(`users/${userId}/gameData`).once('value');
+        if (snapshot.exists()) {
+            const cloudData = snapshot.val();
+            Object.assign(gameData, cloudData);
+            localStorage.setItem("tamagochiPlannerFinal", JSON.stringify(gameData));
+            if (typeof updateAllUI === 'function') updateAllUI();
+            showMessage(`☁️ Данные загружены из облака`);
+            console.log('📥 Облачные данные загружены');
+        }
+    } catch (e) {
+        console.log('Ошибка загрузки из облака:', e);
+    }
+}
+
 function resetGame() {
     const today = new Date().toDateString();
     const thisWeek = getWeekNumber();
@@ -97,20 +121,21 @@ function resetGame() {
         notificationsEnabled: false
     };
     
-    ALL_TASKS.daily.forEach(t => {
-        gameData.taskStatuses[`daily_${t.id}`] = 'pending';
-    });
-    ALL_TASKS.weekly.forEach(t => {
-        gameData.taskStatuses[`weekly_${t.id}`] = 'pending';
-    });
-    ALL_TASKS.monthly.forEach(t => {
-        gameData.taskStatuses[`monthly_${t.id}`] = 'pending';
-    });
+    if (typeof ALL_TASKS !== 'undefined') {
+        ALL_TASKS.daily.forEach(t => {
+            gameData.taskStatuses[`daily_${t.id}`] = 'pending';
+        });
+        ALL_TASKS.weekly.forEach(t => {
+            gameData.taskStatuses[`weekly_${t.id}`] = 'pending';
+        });
+        ALL_TASKS.monthly.forEach(t => {
+            gameData.taskStatuses[`monthly_${t.id}`] = 'pending';
+        });
+    }
     
     saveGame();
     showMessage("🌸 Игра сброшена! Начинаем с чистого листа 🌸");
     
-    // ОБНОВЛЯЕМ ВЕСЬ UI ПОСЛЕ СБРОСА
     if (typeof updateStreakUI === 'function') updateStreakUI();
     if (typeof renderLevelProgress === 'function') renderLevelProgress();
     if (typeof updateParentModeUI === 'function') updateParentModeUI();
@@ -125,4 +150,16 @@ function resetGame() {
     if (typeof renderTasks === 'function') renderTasks();
     if (typeof updateActionLimitsDisplay === 'function') updateActionLimitsDisplay();
     if (typeof switchTab === 'function') switchTab('tasks');
+}
+
+// Следим за авторизацией
+if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            console.log(`👤 Пользователь: ${user.email}`);
+            await loadGameFromCloud(user.uid);
+            if (typeof updateAllUI === 'function') updateAllUI();
+            if (typeof renderTasks === 'function') renderTasks();
+        }
+    });
 }
