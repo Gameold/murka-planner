@@ -4,8 +4,12 @@ function checkAndResetTasks() {
     const thisMonth = new Date().getMonth() + "-" + new Date().getFullYear();
     let newDay = false;
     
+    console.log("Проверка заданий:", { lastDate: gameData.lastDate, today, thisWeek, lastWeek: gameData.lastWeek, thisMonth, lastMonth: gameData.lastMonth });
+    
     // ЕЖЕДНЕВНЫЕ ЗАДАНИЯ
     if (gameData.lastDate !== today) {
+        console.log("НОВЫЙ ДЕНЬ! Сбрасываем ежедневные задания");
+        
         // Проверяем, были ли выполнены все обязательные задания ВЧЕРА
         const allRequiredCompleted = areAllRequiredTasksCompleted();
         
@@ -24,14 +28,14 @@ function checkAndResetTasks() {
         }
         
         // СБРАСЫВАЕМ ВСЕ ЕЖЕДНЕВНЫЕ ЗАДАНИЯ в 'pending'
-        // (кроме тех, что на проверке у родителя)
         ALL_TASKS.daily.forEach(t => {
             const id = `daily_${t.id}`;
             const currentStatus = gameData.taskStatuses[id];
             // Если задание на проверке у родителя - не трогаем
             if (currentStatus === 'pending_review') {
-                // оставляем как есть
+                console.log(`Задание ${id} на проверке, не трогаем`);
             } else {
+                console.log(`Сбрасываем задание ${id} с ${currentStatus} на pending`);
                 gameData.taskStatuses[id] = 'pending';
             }
         });
@@ -43,13 +47,15 @@ function checkAndResetTasks() {
         updateStreakUI();
         addDailyProgress();
         checkLevelUp();
+    } else {
+        console.log("День не изменился, задания не сбрасываем");
     }
     
     // ЕЖЕНЕДЕЛЬНЫЕ ЗАДАНИЯ
     if (gameData.lastWeek !== thisWeek) {
+        console.log("НОВАЯ НЕДЕЛЯ! Сбрасываем еженедельные задания");
         ALL_TASKS.weekly.forEach(t => {
             const id = `weekly_${t.id}`;
-            // Сбрасываем все, кроме тех, что на проверке
             if (gameData.taskStatuses[id] !== 'pending_review') {
                 gameData.taskStatuses[id] = 'pending';
             }
@@ -59,9 +65,9 @@ function checkAndResetTasks() {
     
     // ЕЖЕМЕСЯЧНЫЕ ЗАДАНИЯ
     if (gameData.lastMonth !== thisMonth) {
+        console.log("НОВЫЙ МЕСЯЦ! Сбрасываем ежемесячные задания");
         ALL_TASKS.monthly.forEach(t => {
             const id = `monthly_${t.id}`;
-            // Сбрасываем все, кроме тех, что на проверке
             if (gameData.taskStatuses[id] !== 'pending_review') {
                 gameData.taskStatuses[id] = 'pending';
             }
