@@ -115,7 +115,6 @@ function updateStatusTimers() {
     }
 }
 
-// ⭐⭐⭐ ОСНОВНАЯ ФУНКЦИЯ — ИСПРАВЛЕНА ⭐⭐⭐
 function updatePetStats() {
     const now = Date.now();
     const last = gameData.pet.lastUpdateTime || now;
@@ -147,8 +146,6 @@ function updatePetStats() {
         gameData.pet.energy = Math.max(0, Math.min(100, newEnergy));
         gameData.pet.clean = Math.max(0, Math.min(100, newClean));
         gameData.pet.lastUpdateTime = now;
-        
-        // ❌ saveGame() УБРАН! Сохраняем только при реальных действиях
         
         if (gameData.pet.hunger < 20 && !hungerNotifSent) {
             hungerNotifSent = true;
@@ -185,8 +182,7 @@ function checkAutoSleep() {
         showEmotion('💤😴');
         showMessage(`😴 ${gameData.petName} очень устала и уснула! Нужно дать ей отдохнуть...`);
         playSound(500);
-        // ❌ saveGame() УБРАН — добавим отдельно
-        saveGame(); // Сохраняем ТОЛЬКО здесь, потому что изменили sleepUntil
+        saveGame();
         updatePetBars();
         updateActionLimitsDisplay();
         updateSleepButton();
@@ -194,7 +190,6 @@ function checkAutoSleep() {
     }
 }
 
-// Подсказки при нажатии на статы
 function initStatHints() {
     const statBars = [
         { 

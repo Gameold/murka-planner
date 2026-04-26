@@ -190,7 +190,7 @@ function updateProfileUI() {
         const email = auth.currentUser.email;
         const name = auth.currentUser.displayName || email.split('@')[0];
         profileName.innerText = name.length > 12 ? name.substring(0, 10) + '..' : name;
-        profileStatus.innerText = '✅ В сети';
+        profileStatus.innerText = 'В сети';
         profileStatus.style.color = '#8bc34a';
         profileAvatar.innerHTML = '🐱';
         if (profileLogoutBtn) profileLogoutBtn.style.display = 'block';

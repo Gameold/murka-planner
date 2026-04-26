@@ -2,11 +2,12 @@
 // СОХРАНЕНИЕ И ЗАГРУЗКА ДАННЫХ
 // ============================================
 
+let isCloudLoading = false;
+let isCloudLoaded = false;
+
 function saveGame() {
-    // Сохраняем локально
     localStorage.setItem("tamagochiPlannerFinal", JSON.stringify(gameData));
     
-    // Сохраняем в облако с русскими ключами
     if (typeof auth !== 'undefined' && auth.currentUser) {
         const userId = auth.currentUser.uid;
         const userEmail = auth.currentUser.email;
@@ -98,18 +99,26 @@ function saveGame() {
     }
 }
 
-// ============================================
-// ЗАГРУЗКА ИЗ ОБЛАКА
-// ============================================
-
 async function loadGameFromCloud(userId) {
     if (!userId) return;
+    
+    if (isCloudLoading) {
+        console.log('⏳ Облако уже загружается, ждём...');
+        while (isCloudLoading) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return;
+    }
+    
+    isCloudLoading = true;
+    console.log('☁️ Начинаем загрузку из облака...');
+    
     try {
         const snapshot = await database.ref(`users/${userId}`).once('value');
+        
         if (snapshot.exists()) {
             const cloudData = snapshot.val();
             
-            // Проверяем, есть ли русская структура
             if (cloudData["игра"]) {
                 gameData.gems = cloudData["игра"]["алмазы"] || 100;
                 gameData.streak = cloudData["игра"]["серия_дней"] || 0;
@@ -183,23 +192,29 @@ async function loadGameFromCloud(userId) {
                 gameData.pet.currentAccessory = cloudData["активные_предметы"]["аксессуар"] || null;
             }
             
-            // Сохраняем в localStorage
             localStorage.setItem("tamagochiPlannerFinal", JSON.stringify(gameData));
             
-            if (typeof updateAllUI === 'function') updateAllUI();
-            if (typeof renderTasks === 'function') renderTasks();
-            
-            showMessage("Данные загружены из облака");
-            console.log("Облачные данные загружены");
+            console.log("☁️ Облачные данные загружены");
+            isCloudLoaded = true;
+        } else {
+            console.log("☁️ В облаке нет данных, используем локальные");
+            isCloudLoaded = true;
         }
     } catch (e) {
-        console.log("Ошибка загрузки из облака:", e);
+        console.log("❌ Ошибка загрузки из облака:", e);
+        isCloudLoaded = true;
+        showMessage("⚠️ Не удалось загрузить данные из облака");
+    } finally {
+        isCloudLoading = false;
     }
 }
 
-// ============================================
-// ЗАГРУЗКА ЛОКАЛЬНЫХ ДАННЫХ
-// ============================================
+async function waitForCloudLoad() {
+    while (isCloudLoading) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return isCloudLoaded;
+}
 
 function loadGame() {
     const saved = localStorage.getItem("tamagochiPlannerFinal");
@@ -249,10 +264,6 @@ function loadGame() {
         resetGame();
     }
 }
-
-// ============================================
-// СБРОС ИГРЫ
-// ============================================
 
 function resetGame() {
     const today = new Date().toDateString();
@@ -331,17 +342,17 @@ function resetGame() {
     if (typeof switchTab === "function") switchTab("tasks");
 }
 
-// ============================================
-// АВТОРИЗАЦИЯ И ЗАГРУЗКА ИЗ ОБЛАКА
-// ============================================
-
 if (typeof auth !== "undefined") {
     auth.onAuthStateChanged(async (user) => {
         if (user) {
-            console.log("Пользователь:", user.email);
+            console.log("👤 Пользователь:", user.email);
             await loadGameFromCloud(user.uid);
-            if (typeof updateAllUI === "function") updateAllUI();
-            if (typeof renderTasks === "function") renderTasks();
+        } else {
+            console.log("👤 Пользователь не авторизован, используем локальные данные");
+            if (typeof loadGame === "function") loadGame();
         }
+        
+        if (typeof updateAllUI === "function") updateAllUI();
+        if (typeof renderTasks === "function") renderTasks();
     });
 }

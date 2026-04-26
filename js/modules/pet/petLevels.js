@@ -197,7 +197,7 @@ function renderLevelProgress() {
             headerLevelProgressFill.style.width = '100%';
             headerLevelProgressFill.style.background = '#8bc34a';
         }
-        headerLevelNext.innerHTML = `✅ Все дела сделаны! Завтра будет день ${days + 1}! ✅`;
+        headerLevelNext.innerHTML = ` Все дела сделаны! Завтра будет день ${days + 1}! `;
     }
 }
 

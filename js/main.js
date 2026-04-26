@@ -238,21 +238,17 @@ function init() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
     
-    // ⭐⭐⭐ ИСПРАВЛЕННЫЙ ИНТЕРВАЛ — БЕЗ saveGame() внутри ⭐⭐⭐
     setInterval(() => {
-        updatePetStats();  // Теперь updatePetStats НЕ вызывает saveGame()
+        updatePetStats();
     }, CONFIG.STATS_UPDATE_INTERVAL);
     
-    // ⭐⭐⭐ ФОНОВОЕ СОХРАНЕНИЕ (раз в 5 минут, на случай закрытия браузера) ⭐⭐⭐
     setInterval(() => {
         saveGame();
         console.log('💾 Фоновое сохранение');
     }, 5 * 60 * 1000);
     
-    // Подсказки при нажатии на статы
     initStatHints();
     
-    // Отображаем версию в футере
     setTimeout(() => {
         const footerVersion = document.getElementById('footerVersion');
         if (footerVersion) {
@@ -263,13 +259,8 @@ function init() {
         }
     }, 100);
     
-    // Проверка версии и уведомление об обновлении
     checkVersionAndNotify();
 }
-
-// ============================================
-// ФУНКЦИЯ ПРОВЕРКИ ВЕРСИИ
-// ============================================
 
 function checkVersionAndNotify() {
     const currentVersion = document.querySelector('meta[name="version"]')?.getAttribute('content');
@@ -287,10 +278,6 @@ function checkVersionAndNotify() {
         console.log('✅ Версии совпадают, обновление не требуется');
     }
 }
-
-// ============================================
-// ФУНКЦИЯ ПОКАЗА УВЕДОМЛЕНИЯ ОБ ОБНОВЛЕНИИ
-// ============================================
 
 function showUpdateNotification(newVersion, oldVersion) {
     const notification = document.createElement('div');
@@ -385,5 +372,45 @@ function showUpdateNotification(newVersion, oldVersion) {
         };
     }
 }
+
+// ============================================
+// ПРОВЕРКА СМЕРТИ МУРКИ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+// ============================================
+
+function checkCatDeathOnLoad() {
+    if (gameData && gameData.catIsDead === true) {
+        console.log('💀 Мурка мертва, показываем окно смерти при загрузке');
+        setTimeout(function() {
+            if (typeof showCatDeathModal === 'function') {
+                showCatDeathModal();
+            } else {
+                console.warn('⚠️ showCatDeathModal ещё не загружена, ждём...');
+                setTimeout(function() {
+                    if (typeof showCatDeathModal === 'function') {
+                        showCatDeathModal();
+                    }
+                }, 500);
+            }
+        }, 500);
+        return true;
+    }
+    return false;
+}
+
+// Ждём полной загрузки страницы и данных
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        if (typeof gameData !== 'undefined' && gameData) {
+            checkCatDeathOnLoad();
+        } else {
+            console.log('⏳ Ожидаем загрузку gameData...');
+            setTimeout(function() {
+                if (typeof gameData !== 'undefined' && gameData) {
+                    checkCatDeathOnLoad();
+                }
+            }, 500);
+        }
+    }, 800);
+});
 
 init();

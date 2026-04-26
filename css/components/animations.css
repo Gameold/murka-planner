@@ -1,3 +1,8 @@
+/* ============================================
+   АНИМАЦИИ
+   ============================================ */
+
+/* Анимация всплытия эмоций над питомцем */
 @keyframes floatUp {
     0% {
         opacity: 1;
@@ -9,6 +14,7 @@
     }
 }
 
+/* Анимация появления всплывающего сообщения */
 @keyframes messagePop {
     0% {
         opacity: 0;
@@ -20,15 +26,17 @@
     }
 }
 
+/* Анимация пульсации (для сундучка и активных элементов) */
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
     }
     50% {
-        transform: scale(1.05);
+        transform: scale(1.35);
     }
 }
 
+/* Анимация мерцания звёзд при выполнении задания */
 @keyframes starGlow {
     0%, 100% {
         opacity: 1;
@@ -40,6 +48,11 @@
     }
 }
 
+/* ============================================
+   ЭФФЕКТЫ И АНИМАЦИИ
+   ============================================ */
+
+/* Звёздная анимация при выполнении задания */
 .stars-animation {
     position: absolute;
     top: 0;
@@ -56,9 +69,10 @@
     border-radius: 60px;
 }
 
+/* Всплывающее уведомление (сообщения в центре экрана) */
 .message-popup {
     position: fixed;
-    top: 20%;
+    top: 50%;
     left: 50%;
     transform: translateX(-50%);
     background: #2d1b3ad9;
@@ -81,6 +95,7 @@
     line-height: 1.4;
 }
 
+/* Адаптация сообщений для телефонов */
 @media (max-width: 480px) {
     .message-popup {
         top: 15%;
@@ -91,6 +106,7 @@
     }
 }
 
+/* Холст для конфетти (праздничный эффект) */
 .confetti-canvas {
     position: fixed;
     top: 0;
@@ -101,6 +117,11 @@
     z-index: 1000;
 }
 
+/* ============================================
+   МОДАЛЬНЫЕ ОКНА (УРОВНИ, ИНСТРУКЦИИ)
+   ============================================ */
+
+/* Кнопка закрытия модальных окон (уровни, детали, инструкции) */
 .levels-close, .level-detail-close, .instruction-close {
     position: sticky;
     top: 0;
@@ -119,6 +140,7 @@
     margin-bottom: 10px;
 }
 
+/* Заголовок окна со списком уровней */
 .levels-title {
     text-align: center;
     font-size: 24px;
@@ -128,12 +150,14 @@
     clear: both;
 }
 
+/* Контейнер со списком всех уровней */
 .levels-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
+/* Карточка одного уровня */
 .level-card {
     background: linear-gradient(135deg, #fff5f0, #ffe8f0);
     border-radius: 32px;
@@ -143,16 +167,19 @@
     cursor: pointer;
 }
 
+/* Текущий уровень пользователя (подсвечен золотом) */
 .level-card.current {
     background: linear-gradient(135deg, #fff0e0, #ffe0c8);
     border-left-color: #ffd700;
     box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
 }
 
+/* Эффект нажатия на карточку уровня */
 .level-card:active {
     transform: scale(0.98);
 }
 
+/* Шапка карточки уровня (иконка + название + дни) */
 .level-header {
     display: flex;
     align-items: center;
@@ -160,16 +187,19 @@
     margin-bottom: 10px;
 }
 
+/* Иконка уровня (эмодзи котика) */
 .level-icon {
     font-size: 40px;
 }
 
+/* Название уровня (Котёнок, Подрос, и т.д.) */
 .level-name {
     font-size: 18px;
     font-weight: 700;
     color: #d47a9e;
 }
 
+/* Сколько дней нужно для этого уровня */
 .level-days {
     font-size: 12px;
     color: #b87492;
@@ -179,6 +209,7 @@
     border-radius: 20px;
 }
 
+/* Бонус уровня (например, -30% к расходу статов) */
 .level-bonus {
     font-size: 13px;
     color: #8bc34a;
@@ -188,6 +219,7 @@
     gap: 8px;
 }
 
+/* Какие игры доступны на этом уровне */
 .level-games {
     font-size: 12px;
     color: #a57388;
@@ -197,11 +229,13 @@
     flex-wrap: wrap;
 }
 
+/* Иконки доступных игр */
 .games-icons {
     font-size: 18px;
     letter-spacing: 4px;
 }
 
+/* Бейдж "ТЕКУЩИЙ" или "ЗАБЛОКИРОВАН" */
 .current-badge {
     background: #ffd700;
     color: #8b5a2e;
@@ -213,6 +247,7 @@
     text-align: center;
 }
 
+/* Подвал окна уровней (подсказка) */
 .levels-footer {
     text-align: center;
     margin-top: 20px;
@@ -222,12 +257,14 @@
     color: #c284a3;
 }
 
+/* Шапка с кнопкой помощи (в окне уровней) */
 .levels-header-with-help {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 8px;
 }
 
+/* Кнопка "Как повысить уровень?" */
 .levels-help-btn {
     background: #f0e0ea;
     color: #b87492;
@@ -240,12 +277,18 @@
     gap: 4px;
 }
 
+/* ============================================
+   ДЕТАЛЬНОЕ ОКНО УРОВНЯ (ПРИ КЛИКЕ НА КАРТОЧКУ)
+   ============================================ */
+
+/* Крупная иконка уровня в детальном окне */
 .level-detail-icon {
     font-size: 80px;
     text-align: center;
     margin-bottom: 10px;
 }
 
+/* Название уровня в детальном окне */
 .level-detail-name {
     font-size: 28px;
     font-weight: 800;
@@ -254,6 +297,7 @@
     margin-bottom: 16px;
 }
 
+/* Сколько дней нужно для уровня (в детальном окне) */
 .level-detail-days {
     text-align: center;
     background: rgba(255,215,0,0.2);
@@ -266,6 +310,7 @@
     color: #b8860b;
 }
 
+/* Секция с бонусом или играми (в детальном окне) */
 .level-detail-section {
     background: rgba(255,255,255,0.7);
     border-radius: 32px;
@@ -273,6 +318,7 @@
     margin-bottom: 12px;
 }
 
+/* Заголовок секции (Бонус уровня / Доступные игры) */
 .level-detail-section-title {
     font-size: 14px;
     font-weight: 700;
@@ -283,6 +329,7 @@
     gap: 8px;
 }
 
+/* Текст бонуса (крупно) */
 .level-detail-bonus {
     font-size: 24px;
     font-weight: 800;
@@ -291,6 +338,7 @@
     padding: 8px;
 }
 
+/* Список игр в детальном окне */
 .level-detail-games {
     display: flex;
     flex-wrap: wrap;
@@ -299,6 +347,7 @@
     margin-top: 8px;
 }
 
+/* Одна игра в списке */
 .level-detail-game {
     background: white;
     border-radius: 60px;
@@ -312,6 +361,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
+/* Статус уровня в детальном окне (текущий/пройден/заблокирован) */
 .level-detail-status {
     text-align: center;
     margin-top: 16px;
@@ -320,21 +370,25 @@
     font-weight: 700;
 }
 
+/* Текущий уровень — золотой фон */
 .level-detail-status.current {
     background: #ffd700;
     color: #8b5a2e;
 }
 
+/* Заблокированный уровень — серый фон */
 .level-detail-status.locked {
     background: #e0d0dc;
     color: #a57388;
 }
 
+/* Пройденный уровень — зелёный фон */
 .level-detail-status.unlocked {
     background: #8bc34a;
     color: white;
 }
 
+/* Подсказка о следующем уровне */
 .level-detail-next {
     text-align: center;
     margin-top: 12px;
@@ -342,6 +396,11 @@
     color: #c284a3;
 }
 
+/* ============================================
+   МОДАЛЬНОЕ ОКНО ИНСТРУКЦИИ (КАК ПОВЫСИТЬ УРОВЕНЬ)
+   ============================================ */
+
+/* Затемнение фона */
 .instruction-modal {
     position: fixed;
     top: 0;
@@ -357,10 +416,12 @@
     padding: 20px;
 }
 
+/* Активное состояние модального окна */
 .instruction-modal.active {
     display: flex;
 }
 
+/* Содержимое инструкции */
 .instruction-content {
     background: linear-gradient(145deg, #fff5f0, #ffe8f0);
     border-radius: 48px;
@@ -373,6 +434,7 @@
     border: 2px solid #ffd700;
 }
 
+/* Заголовок инструкции */
 .instruction-title {
     text-align: center;
     font-size: 20px;
@@ -382,6 +444,7 @@
     clear: both;
 }
 
+/* Секция инструкции (блок с текстом) */
 .instruction-section {
     background: rgba(255,255,255,0.7);
     border-radius: 28px;
@@ -389,6 +452,7 @@
     margin-bottom: 12px;
 }
 
+/* Заголовок секции инструкции */
 .instruction-section-title {
     font-size: 16px;
     font-weight: 700;
@@ -399,12 +463,14 @@
     gap: 6px;
 }
 
+/* Текст инструкции */
 .instruction-text {
     font-size: 13px;
     color: #4a2a3b;
     line-height: 1.4;
 }
 
+/* Список обязательных заданий (в инструкции) */
 .instruction-list {
     margin-top: 8px;
     display: flex;
@@ -412,6 +478,7 @@
     gap: 6px;
 }
 
+/* Элемент списка обязательных заданий */
 .instruction-list div {
     background: white;
     padding: 4px 10px;
@@ -420,10 +487,12 @@
     color: #b87492;
 }
 
+/* Таблица с уровнями (в инструкции) */
 .instruction-table {
     margin-top: 8px;
 }
 
+/* Строка таблицы (дни → название уровня) */
 .table-row {
     display: flex;
     justify-content: space-between;
@@ -432,15 +501,18 @@
     font-size: 13px;
 }
 
+/* Левый столбец (дни) */
 .table-row span:first-child {
     color: #b87492;
 }
 
+/* Правый столбец (название уровня) */
 .table-row span:last-child {
     font-weight: 600;
     color: #d47a9e;
 }
 
+/* Подвал инструкции (дополнительная подсказка) */
 .instruction-footer {
     background: #fff0e0;
     border-radius: 24px;
@@ -451,6 +523,11 @@
     text-align: center;
 }
 
+/* ============================================
+   АДАПТАЦИЯ ПОД МАЛЕНЬКИЕ ЭКРАНЫ
+   ============================================ */
+
+/* Планшеты и узкие экраны (до 350px) */
 @media (max-width: 350px) {
     .header-stats {
         flex-direction: column;
@@ -480,6 +557,7 @@
     }
 }
 
+/* Очень маленькие экраны (до 200px) — старые телефоны */
 @media (max-width: 200px) {
     .action-buttons {
         grid-template-columns: repeat(2, 1fr);

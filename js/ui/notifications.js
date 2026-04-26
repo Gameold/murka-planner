@@ -7,7 +7,7 @@ function updateParentModeUI() {
         if (bar) bar.style.display = 'flex';
         if (resetBtnParent) resetBtnParent.style.display = 'block';
         if (container) {
-            container.innerHTML = '<div class="parent-active-badge">🔐 Родительский режим активен</div>';
+            container.innerHTML = '<div class="parent-active-badge">🔐 Родительский режим</div>';
         }
         document.body.classList.add('parent-mode');
     } else {
@@ -16,7 +16,10 @@ function updateParentModeUI() {
         if (container) {
             container.innerHTML = '<button id="enterParentFromSettingsBtn" class="enter-parent-btn">🔐 Войти в режим родителя</button>';
             const enterBtn = document.getElementById('enterParentFromSettingsBtn');
-            if (enterBtn) enterBtn.addEventListener('click', enterParentMode);
+            if (enterBtn && !enterBtn.hasClickHandler) {
+                enterBtn.addEventListener('click', enterParentMode);
+                enterBtn.hasClickHandler = true;
+            }
         }
         document.body.classList.remove('parent-mode');
     }
@@ -49,12 +52,11 @@ function enterParentMode() {
                 gameData.parentModeActive = true;
                 saveGame();
                 modal.remove();
-                showMessage("🔓 Режим родителя активирован! Теперь можно подтверждать задания.");
+                showMessage("🔓 Режим родителя активирован");
                 updateParentModeUI();
                 if (typeof renderTasks === 'function') renderTasks();
                 if (typeof updateActionLimitsDisplay === 'function') updateActionLimitsDisplay();
                 if (typeof updatePetBars === 'function') updatePetBars();
-                // Остаёмся на текущей вкладке, не переключаем на задания
             } else {
                 showMessage("❌ Неверный пин-код!");
                 modal.remove();
@@ -80,6 +82,5 @@ function exitParentMode() {
     if (typeof renderTasks === 'function') renderTasks();
     if (typeof updateActionLimitsDisplay === 'function') updateActionLimitsDisplay();
     if (typeof updatePetBars === 'function') updatePetBars();
-    showMessage("👶 Вы вышли из режима родителя. Теперь можно снова отмечать задания!");
-    // Остаёмся на текущей вкладке
+    showMessage("👶 Режим игры активирован");
 }

@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="0.0.0.29">
+    <meta name="version" content="0.0.0.30">
     <title>🐱 Мурка | Тамагочи + планер</title>
     
     <!-- Скрипт обновления версии -->
@@ -102,11 +102,6 @@
         <div class="tab" data-tab="settings">⚙️ НАСТРОЙКИ</div>
     </div>
 
-    <!-- РЕЖИМ РОДИТЕЛЯ -->
-    <div id="parentModeBar" class="parent-mode-bar" style="display: none;">
-        <span>🔐 РЕЖИМ РОДИТЕЛЯ (активен)</span>
-        <button id="exitParentModeBtn" class="exit-parent-btn">✕ Выйти</button>
-    </div>
 
     <!-- ВКЛАДКА ЗАДАНИЙ -->
     <div id="tasksTab" class="tab-content active-tab">
@@ -116,7 +111,13 @@
             <button class="filter-btn" data-filter="monthly">🌙 Ежемесячные</button>
             <button class="filter-btn" data-filter="all">📋 Все</button>
         </div>
-        <div id="tasksContainer"></div>
+		    <!-- РЕЖИМ РОДИТЕЛЯ -->
+    <div id="parentModeBar" class="parent-mode-bar" style="display: none;">
+        <span>🔐 РЕЖИМ РОДИТЕЛЯ (активен)</span>
+        <button id="exitParentModeBtn" class="exit-parent-btn">✕ Выйти</button>
+    </div>
+		<!-- блок задач -->
+        <div id="tasksContainer"></div>  
     </div>
 
     <!-- ВКЛАДКА ПИТОМЦА -->
@@ -192,6 +193,7 @@
             <div id="parentActionContainer"></div>
             <div id="resetParentBtn" class="reset-btn" style="display: none;">🔄 Начать заново (родитель)</div>
         </div>
+		
     </div>
 
     <footer>
@@ -392,6 +394,5 @@
         }
     });
 </script>
-<script src="data/devTools.js"></script>
 </body>
 </html>

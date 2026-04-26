@@ -1,21 +1,55 @@
+// ============================================
+// ЛОГИКА ЗАДАНИЙ С СИСТЕМОЙ ПРОПУСКОВ
+// ============================================
+
 function checkAndResetTasks() {
     const today = new Date().toDateString();
     const thisWeek = getWeekNumber();
     const thisMonth = new Date().getMonth() + "-" + new Date().getFullYear();
     let newDay = false;
     
+    // ========================================
     // ЕЖЕДНЕВНЫЕ ЗАДАНИЯ
+    // ========================================
     if (gameData.lastDate !== today) {
         const allRequiredCompleted = areAllRequiredTasksCompleted();
         
         if (allRequiredCompleted) {
+            // ✅ ВСЕ обязательные задания выполнены
             gameData.streak = (gameData.streak || 0) + 1;
+            gameData.consecutiveMissedDays = 0;  // Сбрасываем счётчик пропусков
+            gameData.catIsDead = false;
+            
             showMessage(`⭐ Отлично! Ты выполнила все обязательные дела вчера! День ${gameData.streak} ⭐`);
             playSound(880);
             startConfetti();
         } else {
-            showMessage(`😿 Вчера ты не сделала все обязательные дела. Серия дней не увеличилась...`);
-            playSound(440);
+            // ❌ НЕ ВЫПОЛНИЛ обязательные задания (неважно, заходил или нет)
+            
+            // Увеличиваем счётчик пропусков
+            gameData.consecutiveMissedDays = (gameData.consecutiveMissedDays || 0) + 1;
+            
+            // streak НЕ МЕНЯЕТСЯ!
+            
+            // Проверяем, не пора ли Мурке "умереть"
+            if (gameData.consecutiveMissedDays >= 3) {
+                gameData.catIsDead = true;
+                gameData.streak = 0;
+                playSound(220);
+                showCatDeathModal();
+            } else {
+                // Показываем модальное окно предупреждения
+                const remaining = 3 - gameData.consecutiveMissedDays;
+                if (remaining === 1) {
+                    showDeathWarningModal(1);
+                } else if (remaining === 2) {
+                    showDeathWarningModal(2);
+                } else {
+                    // Первый пропуск - простое сообщение
+                    showMessage(`⚠️ Пропуск ${gameData.consecutiveMissedDays}/3. Осталось ${remaining} дня без обязательных дел до потери Мурки! Серия: ${gameData.streak || 0} ⚠️`);
+                    playSound(440);
+                }
+            }
         }
         
         // Сбрасываем ЕЖЕДНЕВНЫЕ задания в 'pending'
@@ -34,11 +68,16 @@ function checkAndResetTasks() {
         updateStreakUI();
         addDailyProgress();
         checkLevelUp();
+        
+        if (gameData.catIsDead) {
+            blockPetActions();
+        }
     }
     
+    // ========================================
     // ЕЖЕНЕДЕЛЬНЫЕ ЗАДАНИЯ
+    // ========================================
     if (gameData.lastWeek !== thisWeek) {
-        // Проверяем, были ли выполнены ВСЕ еженедельные задания (статус 'rewarded')
         const allWeeklyCompleted = ALL_TASKS.weekly.every(t => {
             const status = gameData.taskStatuses[`weekly_${t.id}`];
             return status === 'rewarded';
@@ -46,6 +85,7 @@ function checkAndResetTasks() {
         
         if (allWeeklyCompleted && gameData.lastWeek !== "") {
             gameData.streak = (gameData.streak || 0) + 1;
+            gameData.consecutiveMissedDays = 0;
             showMessage(`📅 Отлично! Ты выполнила все еженедельные дела! +1 день к серии! (${gameData.streak})`);
             playSound(880);
             startConfetti();
@@ -54,7 +94,6 @@ function checkAndResetTasks() {
             showMessage(`😿 Ты не выполнила все еженедельные дела. Серия не увеличилась...`);
         }
         
-        // Сбрасываем ЕЖЕНЕДЕЛЬНЫЕ задания в 'pending' (ВСЕГДА)
         ALL_TASKS.weekly.forEach(t => {
             const id = `weekly_${t.id}`;
             if (gameData.taskStatuses[id] !== 'pending_review') {
@@ -64,9 +103,10 @@ function checkAndResetTasks() {
         gameData.lastWeek = thisWeek;
     }
     
+    // ========================================
     // ЕЖЕМЕСЯЧНЫЕ ЗАДАНИЯ
+    // ========================================
     if (gameData.lastMonth !== thisMonth) {
-        // Проверяем, были ли выполнены ВСЕ ежемесячные задания
         const allMonthlyCompleted = ALL_TASKS.monthly.every(t => {
             const status = gameData.taskStatuses[`monthly_${t.id}`];
             return status === 'rewarded';
@@ -74,6 +114,7 @@ function checkAndResetTasks() {
         
         if (allMonthlyCompleted && gameData.lastMonth !== "") {
             gameData.streak = (gameData.streak || 0) + 1;
+            gameData.consecutiveMissedDays = 0;
             showMessage(`🌙 Отлично! Ты выполнила все ежемесячные дела! +1 день к серии! (${gameData.streak})`);
             playSound(880);
             startConfetti();
@@ -82,7 +123,6 @@ function checkAndResetTasks() {
             showMessage(`😿 Ты не выполнила все ежемесячные дела. Серия не увеличилась...`);
         }
         
-        // Сбрасываем ЕЖЕМЕСЯЧНЫЕ задания в 'pending' (ВСЕГДА)
         ALL_TASKS.monthly.forEach(t => {
             const id = `monthly_${t.id}`;
             if (gameData.taskStatuses[id] !== 'pending_review') {
@@ -92,7 +132,7 @@ function checkAndResetTasks() {
         gameData.lastMonth = thisMonth;
     }
     
-    if (newDay) {
+    if (newDay && !gameData.catIsDead) {
         resetDailyLimits();
         
         const levelBonus = getLevelBonus();
@@ -106,7 +146,155 @@ function checkAndResetTasks() {
     saveGame();
 }
 
+// ========================================
+// МОДАЛЬНОЕ ОКНО ПРЕДУПРЕЖДЕНИЯ О СМЕРТИ
+// ========================================
+
+function showDeathWarningModal(daysLeft) {
+    let modal = document.getElementById('deathWarningModal');
+    if (modal) modal.remove();
+    
+    const isLastDay = daysLeft === 1;
+    const title = isLastDay ? "⚠️ ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ! ⚠️" : "⚠️ ВНИМАНИЕ! МУРКА В ОПАСНОСТИ! ⚠️";
+    const icon = isLastDay ? "💀😿💀" : "⚠️😿⚠️";
+    const borderColor = isLastDay ? "#ff0000" : "#ff8800";
+    const bgGradient = isLastDay ? "linear-gradient(145deg, #3a1a1a, #2a0a0a)" : "linear-gradient(145deg, #2a2a1a, #1a1a0a)";
+    const warningText = isLastDay 
+        ? `ЭТО ПОСЛЕДНИЙ ДЕНЬ!<br><br>
+           Если ты СЕГОДНЯ не выполнишь обязательные дела,<br>
+           <span style="color: #ff4444; font-size: 20px; font-weight: bold;">МУРКА УСНЁТ НАВСЕГДА!</span>`
+        : `Если ты завтра не выполнишь обязательные дела,<br>
+           останется всего 1 день до того, как Мурка уснёт навсегда!<br><br>
+           <span style="color: #ffaa44;">Пожалуйста, позаботься о ней!</span>`;
+    
+    modal = document.createElement('div');
+    modal.id = 'deathWarningModal';
+    modal.className = 'death-warning-modal';
+    modal.innerHTML = `
+        <div class="death-warning-content" style="border-color: ${borderColor}; background: ${bgGradient};">
+            <div class="death-warning-header">
+                <div class="death-warning-icon">${icon}</div>
+                <button class="death-warning-close" id="deathWarningCloseBtn">✕</button>
+            </div>
+            <div class="death-warning-title">${title}</div>
+            <div class="death-warning-text">
+                ${warningText}
+            </div>
+            <div class="death-warning-counter">
+                Пропущено дней: ${gameData.consecutiveMissedDays}/3
+            </div>
+            <div class="death-warning-streak">
+                Текущая серия: ${gameData.streak || 0} дней
+            </div>
+            <button class="death-warning-ok-btn" id="deathWarningOkBtn">ПОНЯТНО, СПАСУ МУРКУ! ❤️</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    const closeBtn = document.getElementById('deathWarningCloseBtn');
+    const okBtn = document.getElementById('deathWarningOkBtn');
+    
+    const closeModal = () => {
+        modal.remove();
+        playSound(880);
+    };
+    
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (okBtn) okBtn.onclick = closeModal;
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+    };
+}
+
+// ========================================
+// МОДАЛЬНОЕ ОКНО СМЕРТИ МУРКИ
+// ========================================
+
+function showCatDeathModal() {
+    let modal = document.getElementById('catDeathModal');
+    if (modal) modal.remove();
+    
+    modal = document.createElement('div');
+    modal.id = 'catDeathModal';
+    modal.className = 'death-modal';
+    modal.innerHTML = `
+        <div class="death-content">
+            <div class="death-icon">💀😿💀</div>
+            <div class="death-title">МУРКА УСНУЛА НАВСЕГДА</div>
+            <div class="death-text">
+                Ты не заботилась о ней ${gameData.consecutiveMissedDays} дня подряд.<br>
+                Она не выдержала равнодушия...
+            </div>
+            <div class="death-count">Серия была: ${gameData.streak} дней</div>
+            <button class="death-resurrect-btn" id="deathResurrectBtn">🌸 ВОСКРЕСИТЬ МУРКУ 🌸</button>
+            <div class="death-note">После воскрешения всё начнётся заново</div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    const resurrectBtn = document.getElementById('deathResurrectBtn');
+    if (resurrectBtn) {
+        resurrectBtn.onclick = () => {
+            modal.remove();
+            resurrectCat();
+        };
+    }
+}
+
+// ========================================
+// ФУНКЦИЯ ВОСКРЕШЕНИЯ МУРКИ
+// ========================================
+
+function resurrectCat() {
+    if (!gameData.catIsDead) return;
+    
+    if (confirm(`💀 ТЫ ХОЧЕШЬ ВОСКРЕСИТЬ ${gameData.petName.toUpperCase()}? 💀\n\nВсё начнётся заново:\n• Серия дней = 0\n• Уровень = Котёнок\n• Алмазы = 100\n• Все задания сбросятся\n\nПродолжить?`)) {
+        // Сбрасываем игру, но сохраняем имя питомца
+        const savedPetName = gameData.petName;
+        resetGame();
+        gameData.petName = savedPetName;
+        gameData.catIsDead = false;
+        gameData.consecutiveMissedDays = 0;
+        saveGame();
+        
+        showMessage(`✨ ЧУДО! ${gameData.petName} воскресла! Начни заботиться о ней, чтобы она не уснула снова! ✨`);
+        startConfetti();
+        playSound(1046);
+        
+        if (typeof updateAllUI === 'function') updateAllUI();
+        if (typeof renderTasks === 'function') renderTasks();
+        if (typeof updatePetBars === 'function') updatePetBars();
+    }
+}
+
+// ========================================
+// БЛОКИРОВКА ДЕЙСТВИЙ С ПИТОМЦЕМ
+// ========================================
+
+function blockPetActions() {
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(btn => {
+        btn.classList.add('disabled');
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.5';
+    });
+    
+    const feedBtn = document.getElementById('actionFeed');
+    if (feedBtn) feedBtn.style.pointerEvents = 'none';
+    
+    showMessage(`💀 ${gameData.petName} уснула навсегда! Воскреси её, чтобы снова играть 💀`);
+}
+
+// ========================================
+// ОСТАЛЬНЫЕ ФУНКЦИИ
+// ========================================
+
 function markTaskPendingReview(taskId, task, card, winCount = 0) {
+    if (gameData.catIsDead) {
+        showMessage(`💀 Мурка уснула навсегда! Воскреси её в настройках 💀`);
+        return;
+    }
     if (gameData.taskStatuses[taskId] !== 'pending') {
         showMessage(`Уже ${gameData.taskStatuses[taskId] === 'rewarded' ? 'выполнено' : 'ждёт проверки'}!`);
         return;
@@ -218,6 +406,10 @@ function updateMonthProgress() {
 }
 
 function openRewardModal() {
+    if (gameData.catIsDead) {
+        showMessage(`💀 Сначала воскреси Мурку! 💀`);
+        return;
+    }
     if (gameData.dailyChestCollected) {
         showMessage(`Сундучок уже получен! Завтра будет новый`);
         return;
@@ -230,6 +422,7 @@ function openRewardModal() {
     gameData.dailyChestCollected = true;
     gameData.gems += 50;
     gameData.pet.happiness = Math.min(100, gameData.pet.happiness + 15);
+    gameData.consecutiveMissedDays = 0;
     saveGame();
     
     const rewardModal = document.getElementById('rewardModal');
@@ -255,7 +448,7 @@ function updateChestUI() {
         dayProgressShort.innerHTML = `${dailyRewarded}/${ALL_TASKS.daily.length}`;
     }
     
-    if (areAllRequiredTasksCompleted() && !gameData.dailyChestCollected) {
+    if (areAllRequiredTasksCompleted() && !gameData.dailyChestCollected && !gameData.catIsDead) {
         if (chestStatusSpan) chestStatusSpan.innerHTML = '🎁';
         if (chestStatusShort) chestStatusShort.innerHTML = '🎁';
         if (chestDiv) chestDiv.classList.add('chest-ready');
@@ -272,7 +465,7 @@ function updateChestUI() {
 
 function addDailyProgress() {
     const today = new Date().toDateString();
-    if (gameData.lastBonusDay !== today) {
+    if (gameData.lastBonusDay !== today && !gameData.catIsDead) {
         checkDailyBonus();
         gameData.lastBonusDay = today;
         
@@ -293,7 +486,7 @@ function addDailyProgress() {
 function checkDailyBonus() {
     const today = new Date().toDateString();
     
-    if (gameData.dailyBonusClaimed !== today && gameData.streak > 0) {
+    if (gameData.dailyBonusClaimed !== today && gameData.streak > 0 && !gameData.catIsDead) {
         let bonus = 5;
         let message = `🔥 Ежедневный бонус за серию ${gameData.streak} дней: `;
         
