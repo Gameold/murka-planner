@@ -1,3 +1,19 @@
+// ============================================
+// НАСТРОЙКИ СООБЩЕНИЙ (можно менять)
+// ============================================
+const MESSAGE_SETTINGS = {
+    baseDuration: 2500,      // базовая длительность в мс (1.5 сек)
+    charBonus: 50,           // +50мс за каждый символ сверх лимита
+    charLimit: 40,           // после скольки символов начинаем добавлять время
+    lineBonus: 300,          // +300мс за каждую строку (перенос)
+    maxDuration: 5000,       // максимум 5 секунд
+    queueDelay: 300          // задержка между сообщениями в очереди
+};
+
+// ============================================
+// ФУНКЦИИ АУДИО
+// ============================================
+
 function initAudio() {
     if (audioCtx) return;
     try {
@@ -42,13 +58,73 @@ function playMeow() {
     } catch (e) { }
 }
 
+// ============================================
+// ОЧЕРЕДЬ СООБЩЕНИЙ С ДИНАМИЧЕСКОЙ ДЛИТЕЛЬНОСТЬЮ
+// ============================================
+
+let messageQueue = [];
+let isMessageShowing = false;
+
+// Функция расчёта длительности сообщения
+function getMessageDuration(text) {
+    let duration = MESSAGE_SETTINGS.baseDuration;
+    
+    // Добавляем время за длинные слова/символы
+    if (text.length > MESSAGE_SETTINGS.charLimit) {
+        const extraChars = text.length - MESSAGE_SETTINGS.charLimit;
+        duration += extraChars * MESSAGE_SETTINGS.charBonus;
+    }
+    
+    // Добавляем время за переносы строк
+    const lines = (text.match(/\n/g) || []).length;
+    duration += lines * MESSAGE_SETTINGS.lineBonus;
+    
+    // Ограничиваем максимумом
+    return Math.min(duration, MESSAGE_SETTINGS.maxDuration);
+}
+
 function showMessage(text) {
+    messageQueue.push(text);
+    if (!isMessageShowing) {
+        showNextMessage();
+    }
+}
+
+function showNextMessage() {
+    if (messageQueue.length === 0) {
+        isMessageShowing = false;
+        return;
+    }
+    
+    isMessageShowing = true;
+    const text = messageQueue.shift();
+    const duration = getMessageDuration(text);
+    
     const msg = document.createElement('div');
     msg.className = 'message-popup';
     msg.innerText = text;
     document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), CONFIG.MESSAGE_DURATION);
+    
+    setTimeout(() => {
+        msg.remove();
+        setTimeout(() => {
+            showNextMessage();
+        }, MESSAGE_SETTINGS.queueDelay);
+    }, duration);
 }
+
+// Быстрое сообщение (без очереди, для срочных уведомлений)
+function showMessageSimple(text) {
+    const msg = document.createElement('div');
+    msg.className = 'message-popup';
+    msg.innerText = text;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 1500);
+}
+
+// ============================================
+// ЭМОЦИИ И АНИМАЦИИ
+// ============================================
 
 function showEmotion(emoji) {
     const el = document.getElementById('petEmotion');
@@ -65,6 +141,10 @@ function showTaskAnimation(card) {
     card.appendChild(div);
     setTimeout(() => div.remove(), 600);
 }
+
+// ============================================
+// ДАТА И ВРЕМЯ
+// ============================================
 
 function updateDateHeader() {
     const now = new Date();
@@ -83,6 +163,10 @@ function getWeekNumber() {
     const days = Math.floor((d - date) / (24 * 3600 * 1000));
     return Math.ceil((days + date.getDay()) / 7);
 }
+
+// ============================================
+// БОНУСЫ И РАСЧЁТЫ
+// ============================================
 
 function getDecayBonus(stat, maxBonus = 0.7) {
     return Math.min(maxBonus, gameData[stat] / 100);
@@ -105,6 +189,10 @@ function getDaysWord(days) {
     if (lastDigit >= 2 && lastDigit <= 4) return 'дня';
     return 'дней';
 }
+
+// ============================================
+// КОНФЕТТИ
+// ============================================
 
 function resizeCanvas() {
     const canvas = document.getElementById('confettiCanvas');

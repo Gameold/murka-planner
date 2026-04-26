@@ -64,15 +64,31 @@
     background: #2d1b3ad9;
     backdrop-filter: blur(8px);
     color: white;
-    padding: 12px 24px;
+    padding: 12px 20px;
     border-radius: 50px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     z-index: 999999;
     pointer-events: none;
-    white-space: nowrap;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     animation: messagePop 0.3s ease;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 85%;
+    width: auto;
+    min-width: 150px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+    .message-popup {
+        top: 15%;
+        font-size: 11px;
+        padding: 10px 16px;
+        max-width: 90%;
+        border-radius: 30px;
+    }
 }
 
 .confetti-canvas {
