@@ -46,7 +46,7 @@ function checkAndResetTasks() {
                     showDeathWarningModal(2);
                 } else {
                     // Первый пропуск - простое сообщение
-                    showMessage(`⚠️ Пропуск ${gameData.consecutiveMissedDays}/3. Осталось ${remaining} дня без обязательных дел до потери Мурки! Серия: ${gameData.streak || 0} ⚠️`);
+                    showMessage(`⚠️ Пропуск ${gameData.consecutiveMissedDays}/3. Осталось ${remaining} дня без обязательных дел до потери ${gameData.petName}! Уровень: ${gameData.streak || 0} ⚠️`);
                     playSound(440);
                 }
             }
@@ -86,12 +86,12 @@ function checkAndResetTasks() {
         if (allWeeklyCompleted && gameData.lastWeek !== "") {
             gameData.streak = (gameData.streak || 0) + 1;
             gameData.consecutiveMissedDays = 0;
-            showMessage(`📅 Отлично! Ты выполнила все еженедельные дела! +1 день к серии! (${gameData.streak})`);
+            showMessage(`📅 Ты выполнила все еженедельные дела! +1 к уровню! (${gameData.streak})`);
             playSound(880);
             startConfetti();
             updateStreakUI();
         } else if (gameData.lastWeek !== "") {
-            showMessage(`😿 Ты не выполнила все еженедельные дела. Серия не увеличилась...`);
+            showMessage(`😿 Ты не выполнила все еженедельные дела...`);
         }
         
         ALL_TASKS.weekly.forEach(t => {
@@ -115,12 +115,12 @@ function checkAndResetTasks() {
         if (allMonthlyCompleted && gameData.lastMonth !== "") {
             gameData.streak = (gameData.streak || 0) + 1;
             gameData.consecutiveMissedDays = 0;
-            showMessage(`🌙 Отлично! Ты выполнила все ежемесячные дела! +1 день к серии! (${gameData.streak})`);
+            showMessage(`🌙 Ты выполнила все ежемесячные дела! +1 к уровню! (${gameData.streak})`);
             playSound(880);
             startConfetti();
             updateStreakUI();
         } else if (gameData.lastMonth !== "") {
-            showMessage(`😿 Ты не выполнила все ежемесячные дела. Серия не увеличилась...`);
+            showMessage(`😿 Ты не выполнила все ежемесячные дела.Уровень прежний...`);
         }
         
         ALL_TASKS.monthly.forEach(t => {
@@ -155,7 +155,7 @@ function showDeathWarningModal(daysLeft) {
     if (modal) modal.remove();
     
     const isLastDay = daysLeft === 1;
-    const title = isLastDay ? "⚠️ ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ! ⚠️" : "⚠️ ВНИМАНИЕ! МУРКА В ОПАСНОСТИ! ⚠️";
+    const title = isLastDay ? "⚠️ ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ! ⚠️" : "⚠️ ВНИМАНИЕ! ${gameData.petName} В ОПАСНОСТИ! ⚠️";
     const icon = isLastDay ? "💀😿💀" : "⚠️😿⚠️";
     const borderColor = isLastDay ? "#ff0000" : "#ff8800";
     const bgGradient = isLastDay ? "linear-gradient(145deg, #3a1a1a, #2a0a0a)" : "linear-gradient(145deg, #2a2a1a, #1a1a0a)";
@@ -221,13 +221,13 @@ function showCatDeathModal() {
     modal.innerHTML = `
         <div class="death-content">
             <div class="death-icon">💀😿💀</div>
-            <div class="death-title">МУРКА УСНУЛА НАВСЕГДА</div>
+            <div class="death-title">${gameData.petName} УСНУЛА НАВСЕГДА</div>
             <div class="death-text">
                 Ты не заботилась о ней ${gameData.consecutiveMissedDays} дня подряд.<br>
                 Она не выдержала равнодушия...
             </div>
             <div class="death-count">Серия была: ${gameData.streak} дней</div>
-            <button class="death-resurrect-btn" id="deathResurrectBtn">🌸 ВОСКРЕСИТЬ МУРКУ 🌸</button>
+            <button class="death-resurrect-btn" id="deathResurrectBtn">🌸 ВОСКРЕСИТЬ ${gameData.petName} 🌸</button>
             <div class="death-note">После воскрешения всё начнётся заново</div>
         </div>
     `;
@@ -258,7 +258,7 @@ function resurrectCat() {
         gameData.consecutiveMissedDays = 0;
         saveGame();
         
-        showMessage(`✨ ЧУДО! ${gameData.petName} воскресла! Начни заботиться о ней, чтобы она не уснула снова! ✨`);
+        showMessage(`✨ ЧУДО! ${gameData.petName} воскресла! Заботиться о ней, чтобы она не уснула снова! ✨`);
         startConfetti();
         playSound(1046);
         
@@ -283,7 +283,7 @@ function blockPetActions() {
     const feedBtn = document.getElementById('actionFeed');
     if (feedBtn) feedBtn.style.pointerEvents = 'none';
     
-    showMessage(`💀 ${gameData.petName} уснула навсегда! Воскреси её, чтобы снова играть 💀`);
+    showMessage(`💀 ${gameData.petName} уснула навсегда! Воскреси её 💀`);
 }
 
 // ========================================
@@ -292,7 +292,7 @@ function blockPetActions() {
 
 function markTaskPendingReview(taskId, task, card, winCount = 0) {
     if (gameData.catIsDead) {
-        showMessage(`💀 Мурка уснула навсегда! Воскреси её в настройках 💀`);
+        showMessage(`💀 ${gameData.petName} уснула навсегда! Воскреси её в настройках 💀`);
         return;
     }
     if (gameData.taskStatuses[taskId] !== 'pending') {
@@ -305,7 +305,7 @@ function markTaskPendingReview(taskId, task, card, winCount = 0) {
     } else {
         gameData.taskStatuses[taskId] = { status: 'pending_review' };
     }
-    showMessage(`✨ Задание отмечено! Появились песочные часы ⏳`);
+    //showMessage(`✨ Задание отмечено! Появились песочные часы ⏳`);
     playSound(880);
     startConfetti();
     saveGame();
@@ -316,7 +316,7 @@ function parentUndoTask(taskId) {
     const state = gameData.taskStatuses[taskId];
     if (state && state.status === 'pending_review') {
         gameData.taskStatuses[taskId] = 'pending';
-        showMessage(`❌ Родитель отменил проверку задания`);
+        //showMessage(`❌ Родитель отменил проверку задания`);
         playSound(660);
         saveGame();
         renderTasks();
@@ -327,7 +327,7 @@ function childUndoTask(taskId) {
     const state = gameData.taskStatuses[taskId];
     if (state && state.status === 'pending_review') {
         gameData.taskStatuses[taskId] = 'pending';
-        showMessage(`❌ Задание отменено, можно отметить заново`);
+        //showMessage(`❌ Задание отменено, можно отметить заново`);
         playSound(660);
         saveGame();
         renderTasks();
@@ -337,7 +337,7 @@ function childUndoTask(taskId) {
 function parentApproveTask(taskId, task) {
     const state = gameData.taskStatuses[taskId];
     if (!state || state.status !== 'pending_review') {
-        showMessage("Нет задания на проверку");
+        //showMessage("Нет задания на проверку");
         return;
     }
     
@@ -345,10 +345,10 @@ function parentApproveTask(taskId, task) {
     if (task.id === "w2") {
         const winCount = state.winCount || 0;
         reward = winCount * 5;
-        showMessage(`🎉 Родитель подтвердил: +${reward}💎 за ${winCount} окна!`);
+        //showMessage(`🎉 Родитель подтвердил: +${reward}💎 за ${winCount} окна!`);
     } else {
         if (task.type === 'daily') reward = Math.floor(task.reward * getRewardBonus());
-        showMessage(`🎉 Родитель подтвердил "${task.name}"! Награда +${reward}💎`);
+        //showMessage(`🎉 Родитель подтвердил "${task.name}"! Награда +${reward}💎`);
     }
     
     gameData.taskStatuses[taskId] = { status: 'parent_approved', rewardReady: reward };
@@ -369,7 +369,7 @@ function childCollectReward(taskId, task) {
     const reward = state.rewardReady;
     gameData.gems += reward;
     gameData.taskStatuses[taskId] = 'rewarded';
-    showMessage(`💎 +${reward} алмазов! Задание выполнено.`);
+    showMessage(`💎 +${reward} алмазов!`);
     playSound(1046);
     startConfetti();
     saveGame();
@@ -388,7 +388,7 @@ function parentUndoApprovedTask(taskId) {
     }
     
     gameData.taskStatuses[taskId] = 'pending';
-    showMessage(`⏪ Родитель отменил подтверждение задания. Задание снова ожидает проверки.`);
+    //showMessage(`⏪ Родитель отменил подтверждение задания. Задание снова ожидает проверки.`);
     playSound(660);
     saveGame();
     renderTasks();
@@ -407,7 +407,7 @@ function updateMonthProgress() {
 
 function openRewardModal() {
     if (gameData.catIsDead) {
-        showMessage(`💀 Сначала воскреси Мурку! 💀`);
+        showMessage(`💀 Сначала воскреси ${gameData.petName}! 💀`);
         return;
     }
     if (gameData.dailyChestCollected) {
@@ -453,7 +453,7 @@ function updateChestUI() {
         if (chestStatusShort) chestStatusShort.innerHTML = '🎁';
         if (chestDiv) chestDiv.classList.add('chest-ready');
     } else if (gameData.dailyChestCollected) {
-        if (chestStatusSpan) chestStatusSpan.innerHTML = '✅';
+        if (chestStatusSpan) chestStatusSpan.innerHTML = '';
         if (chestStatusShort) chestStatusShort.innerHTML = '✅';
         if (chestDiv) chestDiv.classList.remove('chest-ready');
     } else {
@@ -488,7 +488,7 @@ function checkDailyBonus() {
     
     if (gameData.dailyBonusClaimed !== today && gameData.streak > 0 && !gameData.catIsDead) {
         let bonus = 5;
-        let message = `🔥 Ежедневный бонус за серию ${gameData.streak} дней: `;
+        let message = `🔥 Ежедневный бонус за уровень ${gameData.streak} дней: `;
         
         if (gameData.streak >= 30) {
             bonus = 30;
