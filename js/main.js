@@ -6,7 +6,7 @@ function init() {
     isInitialized = true;
     
     loadGame();
-    checkAndResetTasks();   
+    
     initLitterBox();
     createActionButtons();
     updateStreakUI();
@@ -15,6 +15,7 @@ function init() {
     updateParentModeUI();
     updateNameUI();
     updateDateHeader();
+    checkAndResetTasks();
     updatePetStats();
     recalcStats();
     updateAllUI();
@@ -93,30 +94,29 @@ function init() {
     if (exitParentModeBtn) exitParentModeBtn.addEventListener('click', exitParentMode);
     
     const resetParentBtn = document.getElementById('resetParentBtn');
-if (resetParentBtn) {
-    resetParentBtn.addEventListener('click', () => {
-        if (gameData.parentModeActive) {
-            resetGame();
-            // После сброса обновляем всё
-            updateStreakUI();
-            renderLevelProgress();
-            updateParentModeUI();
-            updateNameUI();
-            updateDateHeader();
-            updatePetStats();
-            recalcStats();
-            updateAllUI();
-            renderRoomModal();
-            updateChestUI();
-            updateFreeNameButtonState();
-            renderTasks();
-            updateActionLimitsDisplay();
-            switchTab('tasks');
-        } else {
-            showMessage("Только в режиме родителя");
-        }
-    });
-}
+    if (resetParentBtn) {
+        resetParentBtn.addEventListener('click', () => {
+            if (gameData.parentModeActive) {
+                resetGame();
+                updateStreakUI();
+                renderLevelProgress();
+                updateParentModeUI();
+                updateNameUI();
+                updateDateHeader();
+                updatePetStats();
+                recalcStats();
+                updateAllUI();
+                renderRoomModal();
+                updateChestUI();
+                updateFreeNameButtonState();
+                renderTasks();
+                updateActionLimitsDisplay();
+                switchTab('tasks');
+            } else {
+                showMessage("Только в режиме родителя");
+            }
+        });
+    }
     
     const changeCodeBtn = document.getElementById('changeCodeBtn');
     if (changeCodeBtn) {
@@ -242,8 +242,17 @@ if (resetParentBtn) {
         updatePetStats();
     }, CONFIG.STATS_UPDATE_INTERVAL);
     
-    // НОВАЯ СТРОКА - подсказки при нажатии на статы
+    // Подсказки при нажатии на статы
     initStatHints();
+    
+    // Отображаем версию в футере
+    const footerVersion = document.getElementById('footerVersion');
+    if (footerVersion) {
+        const versionMeta = document.querySelector('meta[name="version"]');
+        if (versionMeta) {
+            footerVersion.innerText = versionMeta.getAttribute('content');
+        }
+    }
 }
 
 init();

@@ -4,21 +4,12 @@ function checkAndResetTasks() {
     const thisMonth = new Date().getMonth() + "-" + new Date().getFullYear();
     let newDay = false;
     
-    console.log("Проверка заданий:", { lastDate: gameData.lastDate, today, thisWeek, lastWeek: gameData.lastWeek, thisMonth, lastMonth: gameData.lastMonth });
-    
     // ЕЖЕДНЕВНЫЕ ЗАДАНИЯ
     if (gameData.lastDate !== today) {
-        console.log("НОВЫЙ ДЕНЬ! Сбрасываем ежедневные задания");
-        
-        // Проверяем, были ли выполнены все обязательные задания ВЧЕРА
         const allRequiredCompleted = areAllRequiredTasksCompleted();
         
         if (allRequiredCompleted) {
-            if (gameData.streak !== undefined) {
-                gameData.streak++;
-            } else {
-                gameData.streak = 1;
-            }
+            gameData.streak = (gameData.streak || 0) + 1;
             showMessage(`⭐ Отлично! Ты выполнила все обязательные дела вчера! День ${gameData.streak} ⭐`);
             playSound(880);
             startConfetti();
@@ -27,15 +18,11 @@ function checkAndResetTasks() {
             playSound(440);
         }
         
-        // СБРАСЫВАЕМ ВСЕ ЕЖЕДНЕВНЫЕ ЗАДАНИЯ в 'pending'
+        // Сбрасываем ЕЖЕДНЕВНЫЕ задания в 'pending'
         ALL_TASKS.daily.forEach(t => {
             const id = `daily_${t.id}`;
             const currentStatus = gameData.taskStatuses[id];
-            // Если задание на проверке у родителя - не трогаем
-            if (currentStatus === 'pending_review') {
-                console.log(`Задание ${id} на проверке, не трогаем`);
-            } else {
-                console.log(`Сбрасываем задание ${id} с ${currentStatus} на pending`);
+            if (currentStatus !== 'pending_review') {
                 gameData.taskStatuses[id] = 'pending';
             }
         });
@@ -47,13 +34,27 @@ function checkAndResetTasks() {
         updateStreakUI();
         addDailyProgress();
         checkLevelUp();
-    } else {
-        console.log("День не изменился, задания не сбрасываем");
     }
     
     // ЕЖЕНЕДЕЛЬНЫЕ ЗАДАНИЯ
     if (gameData.lastWeek !== thisWeek) {
-        console.log("НОВАЯ НЕДЕЛЯ! Сбрасываем еженедельные задания");
+        // Проверяем, были ли выполнены ВСЕ еженедельные задания (статус 'rewarded')
+        const allWeeklyCompleted = ALL_TASKS.weekly.every(t => {
+            const status = gameData.taskStatuses[`weekly_${t.id}`];
+            return status === 'rewarded';
+        });
+        
+        if (allWeeklyCompleted && gameData.lastWeek !== "") {
+            gameData.streak = (gameData.streak || 0) + 1;
+            showMessage(`📅 Отлично! Ты выполнила все еженедельные дела! +1 день к серии! (${gameData.streak})`);
+            playSound(880);
+            startConfetti();
+            updateStreakUI();
+        } else if (gameData.lastWeek !== "") {
+            showMessage(`😿 Ты не выполнила все еженедельные дела. Серия не увеличилась...`);
+        }
+        
+        // Сбрасываем ЕЖЕНЕДЕЛЬНЫЕ задания в 'pending' (ВСЕГДА)
         ALL_TASKS.weekly.forEach(t => {
             const id = `weekly_${t.id}`;
             if (gameData.taskStatuses[id] !== 'pending_review') {
@@ -65,7 +66,23 @@ function checkAndResetTasks() {
     
     // ЕЖЕМЕСЯЧНЫЕ ЗАДАНИЯ
     if (gameData.lastMonth !== thisMonth) {
-        console.log("НОВЫЙ МЕСЯЦ! Сбрасываем ежемесячные задания");
+        // Проверяем, были ли выполнены ВСЕ ежемесячные задания
+        const allMonthlyCompleted = ALL_TASKS.monthly.every(t => {
+            const status = gameData.taskStatuses[`monthly_${t.id}`];
+            return status === 'rewarded';
+        });
+        
+        if (allMonthlyCompleted && gameData.lastMonth !== "") {
+            gameData.streak = (gameData.streak || 0) + 1;
+            showMessage(`🌙 Отлично! Ты выполнила все ежемесячные дела! +1 день к серии! (${gameData.streak})`);
+            playSound(880);
+            startConfetti();
+            updateStreakUI();
+        } else if (gameData.lastMonth !== "") {
+            showMessage(`😿 Ты не выполнила все ежемесячные дела. Серия не увеличилась...`);
+        }
+        
+        // Сбрасываем ЕЖЕМЕСЯЧНЫЕ задания в 'pending' (ВСЕГДА)
         ALL_TASKS.monthly.forEach(t => {
             const id = `monthly_${t.id}`;
             if (gameData.taskStatuses[id] !== 'pending_review') {

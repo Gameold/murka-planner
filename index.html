@@ -6,8 +6,32 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="0.1.1">  <!-- ← ТОЛЬКО ЗДЕСЬ МЕНЯЕШЬ ВЕРСИЮ -->
+    <meta name="version" content="1.1">
     <title>🐱 Мурка | Тамагочи + планер</title>
+    
+    <!-- Принудительное обновление приложения -->
+    <script>
+        (function() {
+            const version = '1.1';
+            const storedVersion = localStorage.getItem('appVersion');
+            
+            if (storedVersion !== version) {
+                localStorage.setItem('appVersion', version);
+                console.log('🔄 Обновление до версии', version);
+                if (window.navigator.standalone) {
+                    window.location.reload(true);
+                }
+            }
+            
+            const lastCheck = localStorage.getItem('lastDateCheck');
+            const today = new Date().toDateString();
+            
+            if (lastCheck !== today) {
+                localStorage.setItem('lastDateCheck', today);
+                console.log('📅 Новый день');
+            }
+        })();
+    </script>
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/main.css">
@@ -162,7 +186,10 @@
         </div>
     </div>
 
-    <footer>🐾 Нажми на иконку → подсказка | 🔒 — обязательно для сундучка</footer>
+    <footer>
+        🐾 Нажми на иконку → подсказка | 🔒 — обязательно для сундучка<br>
+        📱 Версия: <span id="footerVersion">1.1</span>
+    </footer>
 </div>
 
 <!-- МОДАЛЬНЫЕ ОКНА -->
@@ -247,16 +274,10 @@
     <div class="instruction-content">
         <div class="instruction-close" id="instructionCloseBtn">✕</div>
         <div class="instruction-title">📖 КАК ПОВЫСИТЬ УРОВЕНЬ МУРКИ</div>
-<div class="instruction-section">
-    <div class="instruction-section-title">📊 Как повышать статы Мурки?</div>
-    <div class="instruction-text">
-        <strong>🍗 Сытость:</strong> Покормить (+35%), Напоить (+15%)<br>
-        <strong>😊 Счастье:</strong> Погладить (+5%), Подарок (+40%), Игры (+20% каждая), Напоить (+10%)<br>
-        <strong>⚡ Энергия:</strong> Уложить спать (+50%), Покормить (+5%), Напоить (+3%)<br>
-        <strong>🧼 Чистота:</strong> Расчесать (+10%), Искупать (+30%), Убрать лоток (+15%)<br><br>
-        💡 <strong>Совет:</strong> Нажми на любой стат (полоску или процент) — появится подсказка, как его повысить!
-    </div>
-</div>
+        <div class="instruction-section">
+            <div class="instruction-section-title">⭐ Что такое уровень?</div>
+            <div class="instruction-text">Уровень показывает, насколько твоя Мурка выросла. Чем выше уровень, тем больше игр доступно и тем лучше бонусы!</div>
+        </div>
         <div class="instruction-section">
             <div class="instruction-section-title">✨ Как повысить уровень?</div>
             <div class="instruction-text">Нужно каждый день выполнять <strong>6 обязательных заданий</strong>. Они помечены значком 🔒.</div>
@@ -309,7 +330,7 @@
 
 <!-- JS МОДУЛИ -->
 <script src="data/config.js"></script>
-<script src="data/prices.js"></script> 
+<script src="data/prices.js"></script>
 <script src="data/hints.js"></script>
 <script src="data/shopItems.js"></script>
 <script src="data/tasksData.js"></script>
@@ -334,14 +355,35 @@
 <script src="js/ui/notifications.js"></script>
 
 <script src="js/main.js"></script>
+
+<!-- РЕЖИМ РАЗРАБОТЧИКА - УДАЛИТЬ ПЕРЕД ЗАЛИВКОЙ НА GITHUB -->
+
+
+<!-- Автоматическое обновление версий -->
 <script>
     const version = document.querySelector('meta[name="version"]').getAttribute('content');
     document.querySelectorAll('link[rel="stylesheet"], script[src]').forEach(el => {
-        if (el.src) {
-            el.src = el.src.replace(/\?v=\d+/, '') + '?v=' + version;
+        if (el.src) el.src = el.src.replace(/\?v=\d+/, '') + '?v=' + version;
+        if (el.href) el.href = el.href.replace(/\?v=\d+/, '') + '?v=' + version;
+    });
+</script>
+
+<!-- Проверка при фокусе окна -->
+<script>
+    let isFirstFocus = true;
+    window.addEventListener('focus', function() {
+        if (isFirstFocus) {
+            isFirstFocus = false;
+            return;
         }
-        if (el.href) {
-            el.href = el.href.replace(/\?v=\d+/, '') + '?v=' + version;
+        console.log('🔄 Проверяем задания...');
+        const today = new Date().toDateString();
+        if (gameData && gameData.lastDate !== today) {
+            if (typeof checkAndResetTasks === 'function') {
+                checkAndResetTasks();
+                if (typeof renderTasks === 'function') renderTasks();
+                if (typeof updateAllUI === 'function') updateAllUI();
+            }
         }
     });
 </script>
