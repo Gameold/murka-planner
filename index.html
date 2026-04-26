@@ -6,32 +6,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="0.0">
+    <meta name="version" content="1.1">
     <title>🐱 Мурка | Тамагочи + планер</title>
-    
-    <!-- Принудительное обновление приложения -->
-    <script>
-        (function() {
-            const version = '1.1';
-            const storedVersion = localStorage.getItem('appVersion');
-            
-            if (storedVersion !== version) {
-                localStorage.setItem('appVersion', version);
-                console.log('🔄 Обновление до версии', version);
-                if (window.navigator.standalone) {
-                    window.location.reload(true);
-                }
-            }
-            
-            const lastCheck = localStorage.getItem('lastDateCheck');
-            const today = new Date().toDateString();
-            
-            if (lastCheck !== today) {
-                localStorage.setItem('lastDateCheck', today);
-                console.log('📅 Новый день');
-            }
-        })();
-    </script>
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/main.css">
@@ -358,13 +334,43 @@
 
 
 
-<!-- Автоматическое обновление версий -->
+<!-- ============================================ -->
+<!-- ГЛАВНЫЙ СКРИПТ ОБНОВЛЕНИЯ ВЕРСИЙ (НЕ УДАЛЯТЬ!) -->
+<!-- ============================================ -->
 <script>
-    const version = document.querySelector('meta[name="version"]').getAttribute('content');
-    document.querySelectorAll('link[rel="stylesheet"], script[src]').forEach(el => {
-        if (el.src) el.src = el.src.replace(/\?v=\d+/, '') + '?v=' + version;
-        if (el.href) el.href = el.href.replace(/\?v=\d+/, '') + '?v=' + version;
-    });
+    (function() {
+        const version = document.querySelector('meta[name="version"]').getAttribute('content');
+        
+        document.querySelectorAll('link[rel="stylesheet"], script[src]').forEach(el => {
+            if (el.src) {
+                const baseSrc = el.src.split('?')[0];
+                const newSrc = baseSrc + '?v=' + version;
+                if (el.src !== newSrc) {
+                    el.src = newSrc;
+                }
+            }
+            if (el.href) {
+                const baseHref = el.href.split('?')[0];
+                const newHref = baseHref + '?v=' + version;
+                if (el.href !== newHref) {
+                    el.href = newHref;
+                }
+            }
+        });
+        
+        console.log('✅ Версия приложения:', version);
+        
+        const storedVersion = localStorage.getItem('appVersion');
+        if (storedVersion !== version) {
+            localStorage.setItem('appVersion', version);
+            console.log('🔄 Обновление до версии', version);
+            if (window.navigator.standalone) {
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 100);
+            }
+        }
+    })();
 </script>
 
 <!-- Проверка при фокусе окна -->
@@ -386,5 +392,6 @@
         }
     });
 </script>
+
 </body>
 </html>
