@@ -246,12 +246,148 @@ function init() {
     initStatHints();
     
     // Отображаем версию в футере
-    const footerVersion = document.getElementById('footerVersion');
-    if (footerVersion) {
-        const versionMeta = document.querySelector('meta[name="version"]');
-        if (versionMeta) {
-            footerVersion.innerText = versionMeta.getAttribute('content');
+    setTimeout(() => {
+        const footerVersion = document.getElementById('footerVersion');
+        if (footerVersion) {
+            const versionMeta = document.querySelector('meta[name="version"]');
+            if (versionMeta) {
+                footerVersion.innerText = versionMeta.getAttribute('content');
+            }
         }
+    }, 100);
+    
+    // Проверка версии и уведомление об обновлении
+    checkVersionAndNotify();
+}
+
+// ============================================
+// ФУНКЦИЯ ПРОВЕРКИ ВЕРСИИ
+// ============================================
+
+function checkVersionAndNotify() {
+    const currentVersion = document.querySelector('meta[name="version"]')?.getAttribute('content');
+    const savedVersion = localStorage.getItem('appVersion');
+    
+    console.log('🔍 Проверка версий:', { savedVersion, currentVersion });
+    
+    // Если версии разные И есть сохранённая версия
+    if (savedVersion && savedVersion !== currentVersion) {
+        console.log('🔔 Версии разные! Показываем уведомление');
+        
+        // НЕ СОХРАНЯЕМ новую версию ПОКА!
+        // Сохраним только после того, как пользователь нажмёт "Обновить"
+        
+        // Показываем уведомление
+        showUpdateNotification(currentVersion, savedVersion);
+    } else if (!savedVersion) {
+        // Первый запуск — сохраняем версию
+        localStorage.setItem('appVersion', currentVersion);
+        console.log('💾 Первый запуск, сохранена версия:', currentVersion);
+    } else {
+        console.log('✅ Версии совпадают, обновление не требуется');
+    }
+}
+
+// ============================================
+// ФУНКЦИЯ ПОКАЗА УВЕДОМЛЕНИЯ ОБ ОБНОВЛЕНИИ
+// ============================================
+
+function showUpdateNotification(newVersion, oldVersion) {
+    const notification = document.createElement('div');
+    notification.id = 'updateNotification';
+    notification.innerHTML = `
+        <div class="update-banner">
+            <span class="update-icon">🔄</span>
+            <span class="update-text">Доступна новая версия ${newVersion}! (была ${oldVersion})<br>Нажмите "Обновить" для загрузки</span>
+            <button class="update-btn" id="updateRefreshBtn">Обновить</button>
+            <button class="update-close" id="updateCloseBtn">✕</button>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // Стили
+    const style = document.createElement('style');
+    style.textContent = `
+        #updateNotification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 99999;
+            animation: slideUp 0.3s ease;
+        }
+        .update-banner {
+            background: linear-gradient(135deg, #e890b0, #d47a9e);
+            color: white;
+            border-radius: 60px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .update-icon { font-size: 24px; }
+        .update-text { font-size: 14px; font-weight: 600; flex: 1; }
+        .update-btn {
+            background: white;
+            color: #d47a9e;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .update-btn:active { transform: scale(0.95); }
+        .update-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .update-close:active { transform: scale(0.95); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 480px) {
+            .update-banner { padding: 10px 16px; }
+            .update-text { font-size: 12px; }
+            .update-btn { padding: 6px 16px; font-size: 12px; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Обработчики
+    const refreshBtn = document.getElementById('updateRefreshBtn');
+    const closeBtn = document.getElementById('updateCloseBtn');
+    
+    if (refreshBtn) {
+        refreshBtn.onclick = () => {
+            // Сохраняем новую версию ТОЛЬКО при обновлении
+            localStorage.setItem('appVersion', newVersion);
+            
+            if ('caches' in window) {
+                caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+            }
+            window.location.reload(true);
+        };
+    }
+    
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            notification.remove();
+            // Не сохраняем версию! При следующем открытии опять покажем
+        };
     }
 }
 

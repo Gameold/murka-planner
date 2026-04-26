@@ -4,6 +4,12 @@
 
 // Показать окно входа
 function showLoginModal() {
+    // ЕСЛИ ПОЛЬЗОВАТЕЛЬ УЖЕ АВТОРИЗОВАН — НЕ ПОКАЗЫВАЕМ ОКНО!
+    if (auth && auth.currentUser) {
+        console.log('✅ Пользователь уже авторизован, окно входа не показываем');
+        return;
+    }
+    
     let modal = document.getElementById('loginModal');
     if (!modal) {
         createLoginModal();
@@ -129,6 +135,8 @@ async function loginWithGoogle() {
         const result = await auth.signInWithPopup(provider);
         showMessage(`✅ Добро пожаловать, ${result.user.displayName || result.user.email}!`);
         closeLoginModal();
+        // Перезагружаем страницу, чтобы обновить данные
+        setTimeout(() => location.reload(), 500);
     } catch (error) {
         showMessage(`❌ Ошибка: ${error.message}`);
     }
@@ -140,6 +148,7 @@ async function loginWithEmail(email, password) {
         const result = await auth.signInWithEmailAndPassword(email, password);
         showMessage(`✅ Добро пожаловать, ${result.user.email}!`);
         closeLoginModal();
+        setTimeout(() => location.reload(), 500);
     } catch (error) {
         showMessage(`❌ Ошибка: ${error.message}`);
     }
@@ -151,6 +160,7 @@ async function registerWithEmail(email, password) {
         const result = await auth.createUserWithEmailAndPassword(email, password);
         showMessage(`✅ Регистрация успешна! Добро пожаловать!`);
         closeLoginModal();
+        setTimeout(() => location.reload(), 500);
     } catch (error) {
         showMessage(`❌ Ошибка: ${error.message}`);
     }
@@ -158,76 +168,74 @@ async function registerWithEmail(email, password) {
 
 // Выход
 async function logout() {
-    if (confirm("Выйти из аккаунта?")) {
+    if (confirm("Выйти из аккаунта? Данные останутся на устройстве.")) {
         await auth.signOut();
-        location.reload();
+        showMessage("👋 Вы вышли из аккаунта");
+        setTimeout(() => location.reload(), 500);
     }
 }
 
 // Обновление кнопки в настройках
-auth.onAuthStateChanged(async (user) => {
-    const container = document.getElementById('parentActionContainer');
-    if (!container) return;
-    
-    if (user) {
-        // Пользователь вошёл
-        const existingBtn = document.getElementById('logoutBtn');
-        if (!existingBtn) {
-            const logoutBtn = document.createElement('button');
-            logoutBtn.id = 'logoutBtn';
-            logoutBtn.className = 'settings-btn';
-            logoutBtn.style.background = '#ff6b6b';
-            logoutBtn.style.marginTop = '12px';
-            logoutBtn.innerHTML = '🚪 Выйти из аккаунта';
-            logoutBtn.onclick = logout;
-            container.appendChild(logoutBtn);
+if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged(async (user) => {
+        const container = document.getElementById('parentActionContainer');
+        if (!container) return;
+        
+        if (user) {
+            // Пользователь вошёл — показываем кнопку выхода
+            let logoutBtn = document.getElementById('logoutBtn');
+            if (!logoutBtn) {
+                const logoutBtn = document.createElement('button');
+                logoutBtn.id = 'logoutBtn';
+                logoutBtn.className = 'settings-btn';
+                logoutBtn.style.background = '#ff6b6b';
+                logoutBtn.style.marginTop = '12px';
+                logoutBtn.innerHTML = '🚪 Выйти из аккаунта';
+                logoutBtn.onclick = logout;
+                container.appendChild(logoutBtn);
+            }
+            // Удаляем кнопку входа если она есть
+            const loginBtn = document.getElementById('showLoginBtn');
+            if (loginBtn) loginBtn.remove();
+        } else {
+            // Пользователь не вошёл — показываем кнопку входа
+            let loginBtn = document.getElementById('showLoginBtn');
+            if (!loginBtn) {
+                const loginBtn = document.createElement('button');
+                loginBtn.id = 'showLoginBtn';
+                loginBtn.className = 'enter-parent-btn';
+                loginBtn.innerHTML = '🔐 Войти / Зарегистрироваться';
+                loginBtn.onclick = showLoginModal;
+                container.appendChild(loginBtn);
+            }
+            // Удаляем кнопку выхода если она есть
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) logoutBtn.remove();
         }
-    } else {
-        // Пользователь не вошёл
-        const existingBtn = document.getElementById('showLoginBtn');
-        if (!existingBtn) {
-            const loginBtn = document.createElement('button');
-            loginBtn.id = 'showLoginBtn';
-            loginBtn.className = 'enter-parent-btn';
-            loginBtn.innerHTML = '🔐 Войти / Зарегистрироваться';
-            loginBtn.onclick = showLoginModal;
-            container.appendChild(loginBtn);
-        }
-    }
-});
+    });
+}
 
 // Проверка авторизации при загрузке страницы
 window.addEventListener('load', function() {
-    // Ждём немного, чтобы Firebase успел инициализироваться
     setTimeout(() => {
         if (typeof auth !== 'undefined') {
             const user = auth.currentUser;
             if (!user) {
-                // Пользователь не авторизован — показываем окно входа
                 console.log('🔐 Пользователь не авторизован, показываем окно входа');
                 showLoginModal();
             } else {
                 console.log(`✅ Авторизован как: ${user.email}`);
             }
-        } else {
-            console.log('⚠️ Firebase не загружен, проверка отложена');
-            // Если Firebase ещё не загружен, проверяем через секунду
-            setTimeout(() => {
-                if (typeof auth !== 'undefined' && !auth.currentUser) {
-                    showLoginModal();
-                }
-            }, 1000);
         }
     }, 500);
 });
 
-// Также проверяем при возврате на страницу (если закрыл окно входа)
+// Проверка при возврате на страницу
 window.addEventListener('focus', function() {
     if (typeof auth !== 'undefined' && auth.currentUser === null) {
-        // Только если уже показывали раньше или прошло время
         const lastCheck = localStorage.getItem('lastLoginCheck');
         const now = Date.now();
-        if (!lastCheck || (now - parseInt(lastCheck)) > 30000) { // не чаще раза в 30 секунд
+        if (!lastCheck || (now - parseInt(lastCheck)) > 30000) {
             localStorage.setItem('lastLoginCheck', now);
             showLoginModal();
         }
