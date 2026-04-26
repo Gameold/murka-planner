@@ -135,7 +135,6 @@ async function loginWithGoogle() {
         const result = await auth.signInWithPopup(provider);
         showMessage(`✅ Добро пожаловать, ${result.user.displayName || result.user.email}!`);
         closeLoginModal();
-        // Перезагружаем страницу, чтобы обновить данные
         setTimeout(() => location.reload(), 500);
     } catch (error) {
         showMessage(`❌ Ошибка: ${error.message}`);
@@ -182,7 +181,6 @@ if (typeof auth !== 'undefined') {
         if (!container) return;
         
         if (user) {
-            // Пользователь вошёл — показываем кнопку выхода
             let logoutBtn = document.getElementById('logoutBtn');
             if (!logoutBtn) {
                 const logoutBtn = document.createElement('button');
@@ -194,11 +192,9 @@ if (typeof auth !== 'undefined') {
                 logoutBtn.onclick = logout;
                 container.appendChild(logoutBtn);
             }
-            // Удаляем кнопку входа если она есть
             const loginBtn = document.getElementById('showLoginBtn');
             if (loginBtn) loginBtn.remove();
         } else {
-            // Пользователь не вошёл — показываем кнопку входа
             let loginBtn = document.getElementById('showLoginBtn');
             if (!loginBtn) {
                 const loginBtn = document.createElement('button');
@@ -208,15 +204,18 @@ if (typeof auth !== 'undefined') {
                 loginBtn.onclick = showLoginModal;
                 container.appendChild(loginBtn);
             }
-            // Удаляем кнопку выхода если она есть
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) logoutBtn.remove();
         }
     });
 }
 
-// Проверка авторизации при загрузке страницы
+// ============================================
+// ИСПРАВЛЕННАЯ ПРОВЕРКА — с задержкой 2 секунды
+// ============================================
+
 window.addEventListener('load', function() {
+    // Ждём 2 секунды, чтобы Firebase успел восстановить сессию на iOS
     setTimeout(() => {
         if (typeof auth !== 'undefined') {
             const user = auth.currentUser;
@@ -227,17 +226,19 @@ window.addEventListener('load', function() {
                 console.log(`✅ Авторизован как: ${user.email}`);
             }
         }
-    }, 500);
+    }, 2000); // ← было 500, стало 2000
 });
 
-// Проверка при возврате на страницу
+// Проверка при возврате на страницу — тоже с задержкой
 window.addEventListener('focus', function() {
-    if (typeof auth !== 'undefined' && auth.currentUser === null) {
-        const lastCheck = localStorage.getItem('lastLoginCheck');
-        const now = Date.now();
-        if (!lastCheck || (now - parseInt(lastCheck)) > 30000) {
-            localStorage.setItem('lastLoginCheck', now);
-            showLoginModal();
+    setTimeout(() => {
+        if (typeof auth !== 'undefined' && auth.currentUser === null) {
+            const lastCheck = localStorage.getItem('lastLoginCheck');
+            const now = Date.now();
+            if (!lastCheck || (now - parseInt(lastCheck)) > 30000) {
+                localStorage.setItem('lastLoginCheck', now);
+                showLoginModal();
+            }
         }
-    }
+    }, 500);
 });
