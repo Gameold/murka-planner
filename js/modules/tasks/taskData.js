@@ -4,8 +4,8 @@ const REQUIRED_TASK_IDS = ["d1", "d2", "d4", "d9", "d12-2", "d14"];
 
 const ALL_TASKS = {
     daily: [
-        { id: "d1", name: "Заправить постель", icon: "🛏️", reward: 8000000000000000000000000, required: true },
-        { id: "d2", name: "Убрать одежду", icon: "👗", reward: 80000000, required: true },
+        { id: "d1", name: "Заправить постель", icon: "🛏️", reward: 8, required: true },
+        { id: "d2", name: "Убрать одежду", icon: "👗", reward: 8, required: true },
         { id: "d4", name: "Собрать рюкзак", icon: "🎒", reward: 8, required: true },
         { id: "d9", name: "Покормить Мурку", icon: "🐾", reward: 10, required: true },
         { id: "d12-2", name: "Почистить зубы (вечер)", icon: "🪥", reward: 5, required: true },
