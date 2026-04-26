@@ -6,12 +6,22 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="2.1">  <!-- смени для обновения -->
+    <meta name="version" content="1.1"> <!-- версия новая-->
     <title>🐱 Мурка | Тамагочи + планер</title>
-    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components/header.css">
+    <link rel="stylesheet" href="css/components/tabs.css">
+    <link rel="stylesheet" href="css/components/pet.css">
+    <link rel="stylesheet" href="css/components/tasks.css">
+    <link rel="stylesheet" href="css/components/shop.css">
+    <link rel="stylesheet" href="css/components/modals.css">
+    <link rel="stylesheet" href="css/components/animations.css">
 </head>
 <body>
 <div class="app">
+    <!-- ШАПКА СО СТАТАМИ -->
     <div class="header-stats">
         <div class="stats-item">
             <div class="stats-value" id="gemCount">0</div>
@@ -37,6 +47,7 @@
         </div>
     </div>
 
+    <!-- ДАТА И СУНДУК -->
     <div class="date-progress-bar">
         <div class="date-info">
             <span class="date-weekday" id="weekdayLabel"></span>
@@ -51,18 +62,21 @@
         </div>
     </div>
 
+    <!-- ТАБЫ -->
     <div class="tabs">
         <div class="tab active" data-tab="tasks">✨ ЗАДАНИЯ</div>
-        <div class="tab" data-tab="pet">🐱 ПИТОМИЦА</div>
+        <div class="tab" data-tab="pet">🐱 ПИТОМЕЦ</div>
         <div class="tab" data-tab="shop">🛍️ МАГАЗИН</div>
         <div class="tab" data-tab="settings">⚙️ НАСТРОЙКИ</div>
     </div>
 
+    <!-- РЕЖИМ РОДИТЕЛЯ -->
     <div id="parentModeBar" class="parent-mode-bar" style="display: none;">
         <span>🔐 РЕЖИМ РОДИТЕЛЯ (активен)</span>
         <button id="exitParentModeBtn" class="exit-parent-btn">✕ Выйти</button>
     </div>
 
+    <!-- ВКЛАДКА ЗАДАНИЙ -->
     <div id="tasksTab" class="tab-content active-tab">
         <div class="task-filters">
             <button class="filter-btn active" data-filter="daily">⭐ Ежедневные</button>
@@ -73,6 +87,7 @@
         <div id="tasksContainer"></div>
     </div>
 
+    <!-- ВКЛАДКА ПИТОМЦА -->
     <div id="petTab" class="tab-content">
         <div class="pet-card">
             <div class="pet-section" id="petSection">
@@ -118,92 +133,26 @@
                     <div class="stat-card"><div class="stat-card-icon">🌸</div><div class="stat-card-value" id="beautyStat">0</div><div class="stat-card-label">Красота</div></div>
                 </div>
                 
-                <div class="action-buttons">
-                    <div class="action-btn" id="actionFeed">
-                        <span class="action-emoji">🍗</span>
-                        <span class="action-name">Покормить</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="feedLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionMilk">
-                        <span class="action-emoji">🥛</span>
-                        <span class="action-name">Напоить</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="milkLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionSleep">
-                        <span class="action-emoji">😴</span>
-                        <span class="action-name">Уложить спать</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="sleepLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionMedicine">
-                        <span class="action-emoji">💊</span>
-                        <span class="action-name">Лекарство</span>
-                        <span class="action-price">50💎</span>
-                        <span class="action-limit">болезнь</span>
-                    </div>
-                    <div class="action-btn" id="actionPet">
-                        <span class="action-emoji">✋</span>
-                        <span class="action-name" id="petBtnText">Погладить</span>
-                        <span class="action-price">беспл</span>
-                        <span class="action-limit" id="petLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionPlayYarn">
-                        <span class="action-emoji">🧶</span>
-                        <span class="action-name">Клубок</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="playLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionPlayBall">
-                        <span class="action-emoji">⚽</span>
-                        <span class="action-name">Мячик</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="playBallLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionPlayLaser">
-                        <span class="action-emoji">🔴</span>
-                        <span class="action-name">Лазер</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="playLaserLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionPlayCandy">
-                        <span class="action-emoji">🍬</span>
-                        <span class="action-name">Фантик</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="playCandyLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionBrush">
-                        <span class="action-emoji">🪮</span>
-                        <span class="action-name">Расчесать</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="brushLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionBathe">
-                        <span class="action-emoji">🛁</span>
-                        <span class="action-name">Искупать</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="batheLimit">0/5</span>
-                    </div>
-                    <div class="action-btn" id="actionGift">
-                        <span class="action-emoji">🎁</span>
-                        <span class="action-name">Подарок</span>
-                        <span class="action-price">5💎</span>
-                        <span class="action-limit" id="giftLimit">0/5</span>
-                    </div>
-                </div>
+                <div class="action-buttons" id="actionButtonsContainer"></div>
                 <button id="openRoomBtn" class="room-btn">🏠 ВОЙТИ В КОМНАТУ 🏠</button>
                 <div style="font-size:10px; color:#b87492; text-align:center; margin-top:8px;">✨ нажми на Мурку — она мяукнет ✨</div>
             </div>
         </div>
     </div>
 
-    <div id="shopTab" class="tab-content"><div class="shop-grid" id="shopContainer"></div></div>
+    <!-- ВКЛАДКА МАГАЗИНА -->
+    <div id="shopTab" class="tab-content">
+        <div class="shop-grid" id="shopContainer"></div>
+    </div>
 
+    <!-- ВКЛАДКА НАСТРОЕК -->
     <div id="settingsTab" class="tab-content">
         <div class="settings-card">
             <div class="settings-title">🔐 Настройки родителя</div>
-            <div class="toggle-switch"><span class="toggle-label">🔔 Уведомления о голоде</span><input type="checkbox" id="notifToggle" class="toggle-checkbox"></div>
+            <div class="toggle-switch">
+                <span class="toggle-label">🔔 Уведомления о голоде</span>
+                <input type="checkbox" id="notifToggle" class="toggle-checkbox">
+            </div>
             <input type="password" id="currentCodeInput" class="settings-input" placeholder="Текущий код" maxlength="6">
             <input type="password" id="newCodeInput" class="settings-input" placeholder="Новый код" maxlength="6">
             <input type="password" id="confirmCodeInput" class="settings-input" placeholder="Подтвердите" maxlength="6">
@@ -216,6 +165,7 @@
     <footer>🐾 Нажми на иконку → подсказка | 🔒 — обязательно для сундучка</footer>
 </div>
 
+<!-- МОДАЛЬНЫЕ ОКНА -->
 <div id="nameModal" class="name-modal">
     <div class="name-content">
         <h3>🐱 Новое имя питомицы</h3>
@@ -262,7 +212,6 @@
     </div>
 </div>
 
-<!-- Модальное окно с уровнями -->
 <div id="levelsModal" class="levels-modal">
     <div class="levels-content">
         <div class="levels-close" id="levelsCloseBtn">✕</div>
@@ -275,56 +224,115 @@
     </div>
 </div>
 
-<!-- Детальное окно уровня -->
 <div id="levelDetailModal" class="level-detail-modal">
     <div class="level-detail-content">
         <div class="level-detail-close" id="levelDetailCloseBtn">✕</div>
         <div class="level-detail-icon" id="levelDetailIcon">🐱</div>
         <div class="level-detail-name" id="levelDetailName">Котёнок</div>
         <div class="level-detail-days" id="levelDetailDays">Старт</div>
-        
         <div class="level-detail-section">
             <div class="level-detail-section-title">🎁 Бонус уровня</div>
             <div class="level-detail-bonus" id="levelDetailBonus">−30% к расходу статов</div>
         </div>
-        
         <div class="level-detail-section">
             <div class="level-detail-section-title">🎮 Доступные игры</div>
             <div class="level-detail-games" id="levelDetailGames"></div>
         </div>
-        
         <div class="level-detail-status" id="levelDetailStatus"></div>
         <div class="level-detail-next" id="levelDetailNext"></div>
     </div>
 </div>
 
+<div id="levelInstructionModal" class="instruction-modal">
+    <div class="instruction-content">
+        <div class="instruction-close" id="instructionCloseBtn">✕</div>
+        <div class="instruction-title">📖 КАК ПОВЫСИТЬ УРОВЕНЬ МУРКИ</div>
+<div class="instruction-section">
+    <div class="instruction-section-title">📊 Как повышать статы Мурки?</div>
+    <div class="instruction-text">
+        <strong>🍗 Сытость:</strong> Покормить (+35%), Напоить (+15%)<br>
+        <strong>😊 Счастье:</strong> Погладить (+5%), Подарок (+40%), Игры (+20% каждая), Напоить (+10%)<br>
+        <strong>⚡ Энергия:</strong> Уложить спать (+50%), Покормить (+5%), Напоить (+3%)<br>
+        <strong>🧼 Чистота:</strong> Расчесать (+10%), Искупать (+30%), Убрать лоток (+15%)<br><br>
+        💡 <strong>Совет:</strong> Нажми на любой стат (полоску или процент) — появится подсказка, как его повысить!
+    </div>
+</div>
+        <div class="instruction-section">
+            <div class="instruction-section-title">✨ Как повысить уровень?</div>
+            <div class="instruction-text">Нужно каждый день выполнять <strong>6 обязательных заданий</strong>. Они помечены значком 🔒.</div>
+            <div class="instruction-list">
+                <div>🔒 Заправить постель</div>
+                <div>🔒 Убрать одежду</div>
+                <div>🔒 Собрать рюкзак</div>
+                <div>🔒 Покормить Мурку</div>
+                <div>🔒 Почистить зубы (вечер)</div>
+                <div>🔒 Сделать уроки</div>
+            </div>
+        </div>
+        <div class="instruction-section">
+            <div class="instruction-section-title">📅 Как это работает?</div>
+            <div class="instruction-text">
+                • Каждый день ты получаешь список заданий<br>
+                • Ты выполняешь их в реальной жизни<br>
+                • Заходишь в приложение и отмечаешь их ✅<br>
+                • Если выполнены все 6 заданий — серия дней растёт!<br>
+                • Когда серия дней достигает цели — уровень повышается
+            </div>
+        </div>
+        <div class="instruction-section">
+            <div class="instruction-section-title">📊 Когда повышается уровень?</div>
+            <div class="instruction-table">
+                <div class="table-row"><span>0–2 дня</span><span>🍼 Котёнок</span></div>
+                <div class="table-row"><span>3–6 дней</span><span>😊 Подрос</span></div>
+                <div class="table-row"><span>7–13 дней</span><span>🐱 Красавчик</span></div>
+                <div class="table-row"><span>14–20 дней</span><span>👑 Королевский</span></div>
+                <div class="table-row"><span>21+ дней</span><span>🌟 Легендарный</span></div>
+            </div>
+        </div>
+        <div class="instruction-section">
+            <div class="instruction-section-title">🎁 Что даёт новый уровень?</div>
+            <div class="instruction-text">
+                • 🎮 Новые игры (например, на уровне "Подрос" открывается "Мячик")<br>
+                • 💪 Бонусы — статы падают медленнее<br>
+                • 💎 Награда: +20💎 и +20% счастья<br>
+                • 🐱 Новый аватар Мурки
+            </div>
+        </div>
+        <div class="instruction-footer">
+            💡 Нажми на блок с уровнем в шапке, чтобы увидеть все уровни и сколько дней осталось до следующего!
+        </div>
+        <button class="instruction-ok-btn" id="instructionOkBtn">Понятно! ❤️</button>
+    </div>
+</div>
+
 <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
 
-<script src="js/data/hints.js"></script>
-<script src="js/data/tasks.js"></script>
-<script src="js/data/shop.js"></script>
-<script src="js/modules/gameState.js"></script>
-<script src="js/modules/utils.js"></script>
-<script src="js/modules/petLevelSystem.js"></script>
-<script src="js/modules/petActions.js"></script>
-<script src="js/modules/tasksSystem.js"></script>
-<script src="js/modules/shopSystem.js"></script>
-<script src="js/modules/uiUpdates.js"></script>
-<script src="js/main.js"></script>
+<!-- JS МОДУЛИ -->
+<script src="data/config.js"></script>
+<script src="data/prices.js"></script> 
+<script src="data/hints.js"></script>
+<script src="data/shopItems.js"></script>
+<script src="data/tasksData.js"></script>
 
-<script>
-    // Автоматическое добавление версии ко всем скриптам и стилям
-    (function() {
-        const version = document.querySelector('meta[name="version"]').getAttribute('content');
-        document.querySelectorAll('link[rel="stylesheet"], script[src]').forEach(el => {
-            if (el.src) {
-                el.src = el.src.replace(/\?v=\d+/, '') + '?v=' + version;
-            }
-            if (el.href) {
-                el.href = el.href.replace(/\?v=\d+/, '') + '?v=' + version;
-            }
-        });
-    })();
-</script>
+<script src="js/core/gameState.js"></script>
+<script src="js/core/saveLoad.js"></script>
+<script src="js/core/utils.js"></script>
+
+<script src="js/modules/pet/petCore.js"></script>
+<script src="js/modules/pet/petStats.js"></script>
+<script src="js/modules/pet/petLevels.js"></script>
+<script src="js/modules/pet/petUI.js"></script>
+
+<script src="js/modules/tasks/taskLogic.js"></script>
+<script src="js/modules/tasks/taskUI.js"></script>
+
+<script src="js/modules/shop/shopLogic.js"></script>
+<script src="js/modules/shop/shopUI.js"></script>
+
+<script src="js/ui/tabs.js"></script>
+<script src="js/ui/modals.js"></script>
+<script src="js/ui/notifications.js"></script>
+
+<script src="js/main.js"></script>
 </body>
 </html>

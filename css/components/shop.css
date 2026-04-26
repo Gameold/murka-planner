@@ -1,0 +1,133 @@
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.shop-item {
+    background: white;
+    border-radius: 28px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.shop-item:active {
+    transform: scale(0.97);
+}
+
+.shop-icon {
+    font-size: 36px;
+}
+
+.shop-info {
+    flex: 1;
+}
+
+.shop-name {
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.shop-price {
+    font-size: 11px;
+    color: #e890b0;
+    font-weight: 700;
+}
+
+.shop-stat {
+    font-size: 9px;
+    color: #8bc34a;
+}
+
+.owned-badge {
+    font-size: 22px;
+}
+
+.room-modal-content {
+    background: white;
+    border-radius: 48px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.room-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #d47a9e;
+    margin: 20px 0 12px;
+    text-align: left;
+}
+
+.close-room-x {
+    position: sticky;
+    top: 0;
+    right: 0;
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+    color: #b87492;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 40px;
+    background: #f0e0ea;
+    margin-bottom: 10px;
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: #fef7f0;
+    border-radius: 28px;
+    padding: 12px;
+}
+
+.collectible-item {
+    text-align: center;
+    background: white;
+    border-radius: 20px;
+    padding: 8px 4px;
+    position: relative;
+    cursor: pointer;
+    transition: 0.1s;
+}
+
+.collectible-item:active {
+    transform: scale(0.96);
+}
+
+.collectible-icon {
+    font-size: 32px;
+}
+
+.collectible-name {
+    font-size: 9px;
+    color: #a57388;
+    margin-top: 4px;
+}
+
+.collectible-stat {
+    font-size: 8px;
+    color: #8bc34a;
+}
+
+.equipped-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #58cc71;
+    color: white;
+    border-radius: 20px;
+    padding: 2px 5px;
+    font-size: 9px;
+}

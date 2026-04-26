@@ -1,0 +1,112 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: linear-gradient(145deg, #fff5e8 0%, #fce8f0 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    padding: 16px 16px 80px;
+    color: #4a2a3b;
+    transition: background 0.3s ease;
+}
+
+body.parent-mode {
+    background: linear-gradient(145deg, #e8eef4 0%, #d4e0e8 100%);
+    color: #2c3e4e;
+}
+
+body.parent-mode .header-stats,
+body.parent-mode .date-header,
+body.parent-mode .pet-card,
+body.parent-mode .task-card,
+body.parent-mode .settings-card,
+body.parent-mode .shop-item,
+body.parent-mode .collectible-item,
+body.parent-mode .stats-grid .stat-card,
+body.parent-mode .action-btn,
+body.parent-mode .progress-circle,
+body.parent-mode .filter-btn,
+body.parent-mode .modal-content,
+body.parent-mode .room-modal-content,
+body.parent-mode .name-content,
+body.parent-mode .reward-content,
+body.parent-mode .hint-content,
+body.parent-mode .level-in-header {
+    background: rgba(255, 250, 245, 0.95) !important;
+    color: #2c3e4e !important;
+    border-color: #c5d5e0 !important;
+}
+
+body.parent-mode .stats-value,
+body.parent-mode .stats-label,
+body.parent-mode .date-weekday,
+body.parent-mode .date-day,
+body.parent-mode .progress-text,
+body.parent-mode .task-name,
+body.parent-mode .task-reward,
+body.parent-mode .section-title,
+body.parent-mode .pet-name,
+body.parent-mode .stat-card-label,
+body.parent-mode .stat-card-value,
+body.parent-mode .action-name,
+body.parent-mode .action-price,
+body.parent-mode .action-limit,
+body.parent-mode .shop-name,
+body.parent-mode .shop-price,
+body.parent-mode .settings-title,
+body.parent-mode .toggle-label,
+body.parent-mode .level-in-header .stats-value,
+body.parent-mode .level-in-header .stats-label {
+    color: #3a5c6e !important;
+}
+
+body.parent-mode .tab {
+    color: #6a8e9e;
+}
+
+body.parent-mode .tab.active {
+    background: #c5d5e0;
+    color: #2c5a6e;
+}
+
+body.parent-mode .filter-btn.active {
+    background: #8aacbc;
+    color: white;
+}
+
+body.parent-mode .task-card.pending-review {
+    background: #f5e6c8 !important;
+    border-color: #d4a850 !important;
+}
+
+body.parent-mode .daily-chest {
+    background: linear-gradient(135deg, #d4c8a8, #c8b898);
+}
+
+body.parent-mode .pet-section {
+    background: linear-gradient(145deg, #e8f0f4, #dce8f0) !important;
+}
+
+body.parent-mode .bar-bg {
+    background: #d0dce4;
+}
+
+body.parent-mode .action-btn {
+    background: #f0f4f8;
+}
+
+.app {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+footer {
+    font-size: 9px;
+    text-align: center;
+    color: #cba4bb;
+    margin-top: 16px;
+}
