@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="version" content="0.0.0.24">
+    <meta name="version" content="0.0.0.29">
     <title>🐱 Мурка | Тамагочи + планер</title>
     
     <!-- Скрипт обновления версии -->
@@ -42,46 +42,57 @@
 </head>
 <body>
 <div class="app">
-    <!-- ШАПКА СО СТАТАМИ -->
-    <div class="header-stats">
-        <div class="stats-item">
-            <div class="stats-value" id="gemCount">0</div>
-            <div class="stats-label">💎 Алмазы</div>
+<!-- ДАТА И ПРОФИЛЬ В ОДНОЙ СТРОКЕ -->
+<div class="date-progress-bar">
+    <div class="date-info">
+        <span class="date-weekday" id="weekdayLabel"></span>
+        <span class="date-day" id="dateLabel"></span>
+    </div>
+    
+    <!-- БЛОК ПРОФИЛЯ СПРАВА -->
+    <div class="profile-block" id="profileBlock">
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+        <div class="profile-info">
+            <div class="profile-name" id="profileName">Гость</div>
+            <div class="profile-status" id="profileStatus">🔓 Не авторизован</div>
         </div>
-        <div class="stats-item">
-            <div class="stats-value" id="streakCount">0</div>
-            <div class="stats-label">🔥 Дней</div>
-        </div>
-        <div class="stats-item">
-            <div class="stats-value" id="monthProgress">0%</div>
-            <div class="stats-label">📊 За месяц</div>
-        </div>
-        <div class="stats-item level-in-header" id="headerLevelBlock">
-            <div class="stats-value">
-                <span id="headerLevelIcon">⭐</span>
-                <span id="headerLevelName">🍼 Котёнок</span>
-            </div>
-            <div class="level-progress-header">
-                <div class="level-progress-header-fill" id="headerLevelProgressFill" style="width: 0%;"></div>
-            </div>
-            <div class="stats-label" id="headerLevelNext">До 😊 Подрос: 2 дн.</div>
+        <button class="profile-logout" id="profileLogoutBtn" style="display: none;">🚪</button>
+    </div>
+</div>
+<!-- ШАПКА СО СТАТАМИ -->
+<div class="header-stats">
+    <div class="stats-item">
+        <div class="stats-value" id="gemCount">0</div>
+        <div class="stats-label">💎 Алмазы</div>
+    </div>
+    
+    <!-- ВМЕСТО ДНЕЙ — СУНДУК -->
+    <div class="progress-info" id="chestHeaderBtn">
+        <span class="progress-emoji">⭐</span>
+        <span class="progress-text" id="dayProgress">0/17</span>
+        <div class="daily-chest" id="dailyChest">
+            <div id="chestStatus">🔒</div>
         </div>
     </div>
+    
+    <div class="stats-item">
+        <div class="stats-value" id="monthProgress">0%</div>
+        <div class="stats-label">За месяц</div>
+    </div>
+    
+    <div class="stats-item level-in-header" id="headerLevelBlock">
+        <div class="stats-value">
+            <span id="headerLevelIcon">⭐</span>
+            <span id="headerLevelName">🍼 Котёнок</span>
+        </div>
+        <div class="level-progress-header">
+            <div class="level-progress-header-fill" id="headerLevelProgressFill" style="width: 0%;"></div>
+        </div>
+        <div class="stats-label" id="headerLevelNext">До 😊 Подрос: 2 дн.</div>
+    </div>
+</div>
 
-    <!-- ДАТА И СУНДУК -->
-    <div class="date-progress-bar">
-        <div class="date-info">
-            <span class="date-weekday" id="weekdayLabel"></span>
-            <span class="date-day" id="dateLabel"></span>
-        </div>
-        <div class="progress-info" id="chestHeaderBtn">
-            <span class="progress-emoji">⭐</span>
-            <span class="progress-text" id="dayProgress">0/17</span>
-            <div class="daily-chest" id="dailyChest">
-                <div id="chestStatus">🔒</div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- ТАБЫ -->
     <div class="tabs">
@@ -381,5 +392,6 @@
         }
     });
 </script>
+<script src="data/devTools.js"></script>
 </body>
 </html>

@@ -244,15 +244,28 @@ function openRewardModal() {
 function updateChestUI() {
     const chestDiv = document.getElementById('dailyChest');
     const chestStatusSpan = document.getElementById('chestStatus');
+    const chestStatusShort = document.getElementById('chestStatusShort');
+    const dayProgressShort = document.getElementById('dayProgressShort');
+    
+    const dailyRewarded = Object.keys(gameData.taskStatuses).filter(k => 
+        k.startsWith('daily_') && gameData.taskStatuses[k] === 'rewarded'
+    ).length;
+    
+    if (dayProgressShort) {
+        dayProgressShort.innerHTML = `${dailyRewarded}/${ALL_TASKS.daily.length}`;
+    }
     
     if (areAllRequiredTasksCompleted() && !gameData.dailyChestCollected) {
-        if (chestStatusSpan) chestStatusSpan.innerHTML = '🎁✨';
+        if (chestStatusSpan) chestStatusSpan.innerHTML = '🎁';
+        if (chestStatusShort) chestStatusShort.innerHTML = '🎁';
         if (chestDiv) chestDiv.classList.add('chest-ready');
     } else if (gameData.dailyChestCollected) {
         if (chestStatusSpan) chestStatusSpan.innerHTML = '✅';
+        if (chestStatusShort) chestStatusShort.innerHTML = '✅';
         if (chestDiv) chestDiv.classList.remove('chest-ready');
     } else {
         if (chestStatusSpan) chestStatusSpan.innerHTML = '🔒';
+        if (chestStatusShort) chestStatusShort.innerHTML = '🔒';
         if (chestDiv) chestDiv.classList.remove('chest-ready');
     }
 }

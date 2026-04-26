@@ -29,6 +29,7 @@
     color: #b68199;
 }
 
+/* Блок уровня */
 .level-in-header {
     cursor: pointer;
     transition: transform 0.2s ease, background 0.2s ease;
@@ -75,6 +76,197 @@
     transition: width 0.3s ease;
 }
 
+/* ============================================
+   КОМПАКТНАЯ ШАПКА (НИЧЕГО НЕ НАЛАЗИТ)
+   ============================================ */
+
+.unified-panel {
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(12px);
+    border-radius: 48px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Алмазы и месяц */
+.stats-card {
+    text-align: center;
+    background: rgba(232,144,176,0.1);
+    border-radius: 32px;
+    padding: 8px 12px;
+    min-width: 70px;
+    flex-shrink: 0;
+}
+.stats-card .stats-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #e890b0;
+    line-height: 1.3;
+}
+.stats-card .stats-label {
+    font-size: 8px;
+    color: #b68199;
+}
+
+/* Котёнок — растягивается, но не ломается */
+.cat-card {
+    background: linear-gradient(135deg, #fff5e6, #ffefe0);
+    border-radius: 32px;
+    padding: 8px 16px;
+    text-align: center;
+    flex: 1;
+    min-width: 140px;
+    max-width: 220px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(255,140,0,0.15);
+}
+.cat-level {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.cat-icon {
+    font-size: 18px;
+}
+.cat-title {
+    font-size: 14px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #b95f82, #dd8aaa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.cat-day {
+    font-size: 12px;
+    color: #e890b0;
+    font-weight: 700;
+    background: rgba(232,144,176,0.2);
+    padding: 2px 8px;
+    border-radius: 30px;
+}
+.cat-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(184, 116, 146, 0.2);
+    border-radius: 4px;
+    margin: 6px 0 4px;
+    overflow: hidden;
+}
+.cat-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffb347, #ff8c00);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+.cat-hint {
+    font-size: 8px;
+    color: #c28151;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Сундук + дата вместе */
+.chest-card {
+    background: linear-gradient(135deg, #fff0cf, #ffe2b5);
+    border-radius: 32px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.date-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.date-day-short {
+    font-size: 10px;
+    font-weight: 600;
+    color: #d47a9e;
+}
+.date-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: #b87492;
+}
+.chest-stack {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.chest-emoji {
+    font-size: 16px;
+}
+.chest-progress {
+    font-weight: 700;
+    font-size: 11px;
+    color: #e890b0;
+}
+.chest-status {
+    font-size: 16px;
+}
+.chest-status.chest-ready {
+    animation: pulse 0.8s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    70% { transform: scale(1.1); }
+}
+
+/* Адаптация под узкие экраны */
+@media (max-width: 650px) {
+    .top-row {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .cat-card {
+        order: -1;
+        max-width: none;
+        width: 100%;
+    }
+    .stats-card {
+        flex: 1;
+    }
+    .cat-level {
+        flex-wrap: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .cat-title {
+        font-size: 12px;
+    }
+    .stats-card .stats-value {
+        font-size: 14px;
+    }
+    .chest-card {
+        padding: 4px 8px;
+        gap: 6px;
+    }
+    .date-num {
+        font-size: 10px;
+    }
+    .cat-hint {
+        font-size: 7px;
+    }
+}
+
+/* Даты */
 .date-progress-bar {
     background: linear-gradient(135deg, #fff0f5, #ffe0ec);
     border-radius: 60px;
@@ -135,6 +327,7 @@
     animation: pulse 1s infinite;
 }
 
+/* Родительская панель */
 .parent-mode-bar {
     background: #ffd966;
     color: #6b3e26;
@@ -157,4 +350,104 @@
     cursor: pointer;
     color: #d47a9e;
     font-size: 12px;
+}
+
+/* Блок профиля в строке с датой */
+.date-progress-bar {
+    background: linear-gradient(135deg, #fff0f5, #ffe0ec);
+    border-radius: 60px;
+    padding: 10px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.date-info {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.date-weekday {
+    font-size: 14px;
+    font-weight: 700;
+    color: #d47a9e;
+}
+
+.date-day {
+    font-size: 13px;
+    color: #b87492;
+}
+
+/* Блок профиля */
+.profile-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(232,144,176,0.15);
+    border-radius: 40px;
+    padding: 4px 12px 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.profile-block:active {
+    transform: scale(0.97);
+}
+
+.profile-avatar {
+    font-size: 24px;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.profile-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #e890b0;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-status {
+    font-size: 9px;
+    color: #b68199;
+}
+
+.profile-logout {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 30px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #ff6b6b;
+    transition: 0.1s;
+}
+
+.profile-logout:active {
+    transform: scale(0.95);
+    background: rgba(255,255,255,0.3);
+}
+
+/* Адаптивность */
+@media (max-width: 350px) {
+    .date-progress-bar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    .profile-block {
+        width: 100%;
+        justify-content: center;
+    }
 }

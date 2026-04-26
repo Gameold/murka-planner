@@ -130,8 +130,8 @@ function updateGamesByLevel() {
 }
 
 function renderLevelProgress() {
+    const currentLevel = getCurrentLevel();
     const currentLevelIndex = getCurrentLevelIndex();
-    const currentLevel = LEVELS[currentLevelIndex];
     const nextLevel = LEVELS[currentLevelIndex + 1];
     const days = gameData.streak || 0;
     
@@ -140,40 +140,64 @@ function renderLevelProgress() {
     const headerLevelProgressFill = document.getElementById('headerLevelProgressFill');
     const headerLevelNext = document.getElementById('headerLevelNext');
     
+    // Вместо 🔥 Дней показываем уровень с номером дня
+    const streakElement = document.getElementById('streakCount');
+    if (streakElement) {
+        // Убираем отображение отдельного счётчика дней
+        streakElement.style.display = 'none';
+    }
+    
     if (headerLevelIcon) {
         if (currentLevelIndex >= 3) headerLevelIcon.innerHTML = '👑';
         else if (currentLevelIndex >= 1) headerLevelIcon.innerHTML = '⭐';
         else headerLevelIcon.innerHTML = '🍼';
     }
     
-    if (headerLevelName) headerLevelName.innerHTML = currentLevel.name;
+    // Показываем уровень и день серии
+    if (headerLevelName) {
+        headerLevelName.innerHTML = `${currentLevel.name} ${days}`;
+    }
     
-    if (typeof areAllRequiredTasksCompleted === 'function') {
-        const completedRequired = REQUIRED_TASK_IDS.filter(id => 
-            gameData.taskStatuses[`daily_${id}`] === 'rewarded'
-        ).length;
-        const totalRequired = REQUIRED_TASK_IDS.length;
-        
-        if (completedRequired < totalRequired && headerLevelNext) {
-            headerLevelNext.innerHTML = `⚠️ Выполни ${totalRequired - completedRequired} обязательных дел для роста уровня ⚠️`;
-            if (headerLevelProgressFill) headerLevelProgressFill.style.width = `${(completedRequired / totalRequired) * 100}%`;
-        } else if (nextLevel && headerLevelNext) {
-            const daysToNext = nextLevel.minDays - days;
-            const progress = ((days - currentLevel.minDays) / (nextLevel.minDays - currentLevel.minDays)) * 100;
-            
-            if (headerLevelProgressFill) {
-                headerLevelProgressFill.style.width = `${Math.min(100, Math.max(0, progress))}%`;
-            }
-            
-            if (daysToNext > 0) {
-                headerLevelNext.innerHTML = `До ${nextLevel.name}: ${daysToNext} ${getDaysWord(daysToNext)}`;
-            } else {
-                headerLevelNext.innerHTML = `✨ Макс. уровень! ✨`;
-            }
-        } else if (headerLevelNext) {
-            if (headerLevelProgressFill) headerLevelProgressFill.style.width = '100%';
-            headerLevelNext.innerHTML = `🌟 Легенда! 🌟`;
+    // Считаем выполненные обязательные задания
+    const completedRequired = REQUIRED_TASK_IDS.filter(id => 
+        gameData.taskStatuses[`daily_${id}`] === 'rewarded'
+    ).length;
+    const totalRequired = REQUIRED_TASK_IDS.length;
+    const allRequiredCompleted = completedRequired === totalRequired;
+    
+    // Если достигнут максимальный уровень
+    if (!nextLevel && headerLevelNext) {
+        if (headerLevelProgressFill) {
+            headerLevelProgressFill.style.width = '100%';
+            headerLevelProgressFill.style.background = '#ffd700';
         }
+        headerLevelNext.innerHTML = `🌟 Легенда! День ${days} 🌟`;
+        return;
+    }
+    
+    // Если НЕ ВСЕ обязательные задания выполнены — показываем прогресс по заданиям
+    if (!allRequiredCompleted && headerLevelNext) {
+        const remaining = totalRequired - completedRequired;
+        const percent = (completedRequired / totalRequired) * 100;
+        
+        if (headerLevelProgressFill) {
+            headerLevelProgressFill.style.width = `${percent}%`;
+            headerLevelProgressFill.style.background = '#ffb347';
+        }
+        
+        if (remaining === 1) {
+            headerLevelNext.innerHTML = `⚠️ Выполни последнее обязательное дело для роста уровня! (осталось 1 дело) ⚠️`;
+        } else {
+            headerLevelNext.innerHTML = `⚠️ Выполни ${remaining} обязательных дел для роста уровня (сейчас день ${days}) ⚠️`;
+        }
+    } 
+    // Если ВСЕ обязательные задания выполнены — показываем 100% и ждём следующий день
+    else if (allRequiredCompleted && headerLevelNext) {
+        if (headerLevelProgressFill) {
+            headerLevelProgressFill.style.width = '100%';
+            headerLevelProgressFill.style.background = '#8bc34a';
+        }
+        headerLevelNext.innerHTML = `✅ Все дела сделаны! Завтра будет день ${days + 1}! ✅`;
     }
 }
 

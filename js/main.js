@@ -238,9 +238,16 @@ function init() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
     
+    // ⭐⭐⭐ ИСПРАВЛЕННЫЙ ИНТЕРВАЛ — БЕЗ saveGame() внутри ⭐⭐⭐
     setInterval(() => {
-        updatePetStats();
+        updatePetStats();  // Теперь updatePetStats НЕ вызывает saveGame()
     }, CONFIG.STATS_UPDATE_INTERVAL);
+    
+    // ⭐⭐⭐ ФОНОВОЕ СОХРАНЕНИЕ (раз в 5 минут, на случай закрытия браузера) ⭐⭐⭐
+    setInterval(() => {
+        saveGame();
+        console.log('💾 Фоновое сохранение');
+    }, 5 * 60 * 1000);
     
     // Подсказки при нажатии на статы
     initStatHints();
@@ -270,17 +277,10 @@ function checkVersionAndNotify() {
     
     console.log('🔍 Проверка версий:', { savedVersion, currentVersion });
     
-    // Если версии разные И есть сохранённая версия
     if (savedVersion && savedVersion !== currentVersion) {
         console.log('🔔 Версии разные! Показываем уведомление');
-        
-        // НЕ СОХРАНЯЕМ новую версию ПОКА!
-        // Сохраним только после того, как пользователь нажмёт "Обновить"
-        
-        // Показываем уведомление
         showUpdateNotification(currentVersion, savedVersion);
     } else if (!savedVersion) {
-        // Первый запуск — сохраняем версию
         localStorage.setItem('appVersion', currentVersion);
         console.log('💾 Первый запуск, сохранена версия:', currentVersion);
     } else {
@@ -305,7 +305,6 @@ function showUpdateNotification(newVersion, oldVersion) {
     `;
     document.body.appendChild(notification);
     
-    // Стили
     const style = document.createElement('style');
     style.textContent = `
         #updateNotification {
@@ -367,15 +366,12 @@ function showUpdateNotification(newVersion, oldVersion) {
     `;
     document.head.appendChild(style);
     
-    // Обработчики
     const refreshBtn = document.getElementById('updateRefreshBtn');
     const closeBtn = document.getElementById('updateCloseBtn');
     
     if (refreshBtn) {
         refreshBtn.onclick = () => {
-            // Сохраняем новую версию ТОЛЬКО при обновлении
             localStorage.setItem('appVersion', newVersion);
-            
             if ('caches' in window) {
                 caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
             }
@@ -386,7 +382,6 @@ function showUpdateNotification(newVersion, oldVersion) {
     if (closeBtn) {
         closeBtn.onclick = () => {
             notification.remove();
-            // Не сохраняем версию! При следующем открытии опять покажем
         };
     }
 }

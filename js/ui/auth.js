@@ -174,48 +174,62 @@ async function logout() {
     }
 }
 
-// Обновление кнопки в настройках
-if (typeof auth !== 'undefined') {
-    auth.onAuthStateChanged(async (user) => {
-        const container = document.getElementById('parentActionContainer');
-        if (!container) return;
-        
-        if (user) {
-            let logoutBtn = document.getElementById('logoutBtn');
-            if (!logoutBtn) {
-                const logoutBtn = document.createElement('button');
-                logoutBtn.id = 'logoutBtn';
-                logoutBtn.className = 'settings-btn';
-                logoutBtn.style.background = '#ff6b6b';
-                logoutBtn.style.marginTop = '12px';
-                logoutBtn.innerHTML = '🚪 Выйти из аккаунта';
-                logoutBtn.onclick = logout;
-                container.appendChild(logoutBtn);
-            }
-            const loginBtn = document.getElementById('showLoginBtn');
-            if (loginBtn) loginBtn.remove();
+// ============================================
+// ОБНОВЛЕНИЕ ПРОФИЛЯ В ШАПКЕ
+// ============================================
+
+function updateProfileUI() {
+    const profileName = document.getElementById('profileName');
+    const profileStatus = document.getElementById('profileStatus');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const profileLogoutBtn = document.getElementById('profileLogoutBtn');
+    
+    if (!profileName) return;
+    
+    if (auth.currentUser) {
+        const email = auth.currentUser.email;
+        const name = auth.currentUser.displayName || email.split('@')[0];
+        profileName.innerText = name.length > 12 ? name.substring(0, 10) + '..' : name;
+        profileStatus.innerText = '✅ В сети';
+        profileStatus.style.color = '#8bc34a';
+        profileAvatar.innerHTML = '🐱';
+        if (profileLogoutBtn) profileLogoutBtn.style.display = 'block';
+    } else {
+        profileName.innerText = 'Гость';
+        profileStatus.innerText = '🔓 Войти';
+        profileStatus.style.color = '#b68199';
+        profileAvatar.innerHTML = '👤';
+        if (profileLogoutBtn) profileLogoutBtn.style.display = 'none';
+    }
+}
+
+// Клик по профилю
+document.addEventListener('click', (e) => {
+    const profileBlock = document.getElementById('profileBlock');
+    if (profileBlock && profileBlock.contains(e.target)) {
+        const logoutBtn = document.getElementById('profileLogoutBtn');
+        // Если кликнули на кнопку выхода
+        if (e.target === logoutBtn || logoutBtn?.contains(e.target)) {
+            logout();
         } else {
-            let loginBtn = document.getElementById('showLoginBtn');
-            if (!loginBtn) {
-                const loginBtn = document.createElement('button');
-                loginBtn.id = 'showLoginBtn';
-                loginBtn.className = 'enter-parent-btn';
-                loginBtn.innerHTML = '🔐 Войти / Зарегистрироваться';
-                loginBtn.onclick = showLoginModal;
-                container.appendChild(loginBtn);
-            }
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) logoutBtn.remove();
+            // Иначе показываем окно входа
+            showLoginModal();
         }
+    }
+});
+
+// Обновляем профиль при изменении состояния авторизации
+if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged((user) => {
+        updateProfileUI();
     });
 }
 
-// ============================================
-// ИСПРАВЛЕННАЯ ПРОВЕРКА — с задержкой 2 секунды
-// ============================================
+// Вызываем при загрузке
+setTimeout(updateProfileUI, 500);
 
+// Проверка авторизации при загрузке страницы
 window.addEventListener('load', function() {
-    // Ждём 2 секунды, чтобы Firebase успел восстановить сессию на iOS
     setTimeout(() => {
         if (typeof auth !== 'undefined') {
             const user = auth.currentUser;
@@ -226,10 +240,10 @@ window.addEventListener('load', function() {
                 console.log(`✅ Авторизован как: ${user.email}`);
             }
         }
-    }, 2000); // ← было 500, стало 2000
+    }, 2000);
 });
 
-// Проверка при возврате на страницу — тоже с задержкой
+// Проверка при возврате на страницу
 window.addEventListener('focus', function() {
     setTimeout(() => {
         if (typeof auth !== 'undefined' && auth.currentUser === null) {

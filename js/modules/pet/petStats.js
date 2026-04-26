@@ -115,8 +115,12 @@ function updateStatusTimers() {
     }
 }
 
+// ⭐⭐⭐ ОСНОВНАЯ ФУНКЦИЯ — ИСПРАВЛЕНА ⭐⭐⭐
 function updatePetStats() {
-    const now = Date.now(), last = gameData.pet.lastUpdateTime || now, hours = (now - last) / (1000 * 3600);
+    const now = Date.now();
+    const last = gameData.pet.lastUpdateTime || now;
+    const hours = (now - last) / (1000 * 3600);
+    
     wakeUpFromSleep();
     recoverFromSickness();
     
@@ -143,8 +147,9 @@ function updatePetStats() {
         gameData.pet.energy = Math.max(0, Math.min(100, newEnergy));
         gameData.pet.clean = Math.max(0, Math.min(100, newClean));
         gameData.pet.lastUpdateTime = now;
-        saveGame();
-
+        
+        // ❌ saveGame() УБРАН! Сохраняем только при реальных действиях
+        
         if (gameData.pet.hunger < 20 && !hungerNotifSent) {
             hungerNotifSent = true;
             sendHungerNotification();
@@ -154,6 +159,7 @@ function updatePetStats() {
         
         checkAutoSleep();
     }
+    
     updatePetBars();
     updateActionLimitsDisplay();
     updateStatusTimers();
@@ -179,7 +185,8 @@ function checkAutoSleep() {
         showEmotion('💤😴');
         showMessage(`😴 ${gameData.petName} очень устала и уснула! Нужно дать ей отдохнуть...`);
         playSound(500);
-        saveGame();
+        // ❌ saveGame() УБРАН — добавим отдельно
+        saveGame(); // Сохраняем ТОЛЬКО здесь, потому что изменили sleepUntil
         updatePetBars();
         updateActionLimitsDisplay();
         updateSleepButton();
@@ -187,7 +194,7 @@ function checkAutoSleep() {
     }
 }
 
-// НОВАЯ ФУНКЦИЯ - подсказки при нажатии на статы
+// Подсказки при нажатии на статы
 function initStatHints() {
     const statBars = [
         { 
