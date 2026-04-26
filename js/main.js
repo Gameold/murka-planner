@@ -6,7 +6,7 @@ function init() {
     isInitialized = true;
     
     loadGame();
-    
+    checkAndResetTasks();   
     initLitterBox();
     createActionButtons();
     updateStreakUI();
@@ -15,7 +15,6 @@ function init() {
     updateParentModeUI();
     updateNameUI();
     updateDateHeader();
-    checkAndResetTasks();
     updatePetStats();
     recalcStats();
     updateAllUI();
